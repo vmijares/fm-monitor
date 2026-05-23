@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FM Monitor — Acceso</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:    #d4622a;
+      --orange-lt: #f8ede7;
+      --black:     #1a1a1a;
+      --gray:      #6e6860;
+      --gray-lt:   #e8e3dc;
+      --bg:        #f5f2ee;
+      --white:     #ffffff;
+      --red:       #c0392b;
+      --red-bg:    #fdecea;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+      padding: 44px 40px 40px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    /* brand mark */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 28px;
+    }
+
+    .brand-name {
+      font-family: 'Lora', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--black);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-name em { font-style: italic; font-weight: 400; }
+
+    .brand-accent {
+      width: 2px;
+      height: 20px;
+      background: var(--orange);
+      border-radius: 1px;
+    }
+
+    .brand-tag {
+      font-size: 0.67rem;
+      font-weight: 600;
+      color: var(--gray);
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    /* divider */
+    .divider {
+      height: 1px;
+      background: var(--gray-lt);
+      margin-bottom: 28px;
+    }
+
+    .card-title {
+      font-family: 'Lora', serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 6px;
+    }
+
+    .card-sub {
+      font-size: 0.8rem;
+      color: var(--gray);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 7px;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      border: 1.5px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      color: var(--black);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 18px;
+    }
+
+    input[type="password"]:focus {
+      border-color: var(--orange);
+    }
+
+    input[type="password"].error {
+      border-color: var(--red);
+    }
+
+    .error-msg {
+      background: var(--red-bg);
+      color: var(--red);
+      font-size: 0.78rem;
+      border-radius: 7px;
+      padding: 9px 12px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
+    button[type="submit"] {
+      width: 100%;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      padding: 11px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+
+    button[type="submit"]:hover   { filter: brightness(0.9); }
+    button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
+
+    footer {
+      margin-top: 28px;
+      font-size: 0.7rem;
+      color: var(--gray);
+      text-align: center;
+    }
+
+    footer span { font-family: 'Lora', serif; font-style: italic; color: var(--orange); }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="brand">
+      <span class="brand-name">Simplify&thinsp;<em>Studio</em></span>
+      <div class="brand-accent"></div>
+      <span class="brand-tag">FM&nbsp;Monitor</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="card-title">Área privada</div>
+    <div class="card-sub">Introduce la contraseña para acceder al panel de monitorización.</div>
+
+    <form id="form" novalidate>
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" autocomplete="current-password" autofocus>
+      <div class="error-msg" id="error">Contraseña incorrecta. Inténtalo de nuevo.</div>
+      <button type="submit" id="btn">Entrar</button>
+    </form>
+  </div>
+
+  <footer>
+    <span>Simplify</span> Studio &middot; <span id="yr"></span>
+  </footer>
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    const form  = document.getElementById('form');
+    const input = document.getElementById('password');
+    const btn   = document.getElementById('btn');
+    const error = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = input.value;
+      if (!password) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando…';
+      error.classList.remove('visible');
+      input.classList.remove('error');
+
+      try {
+        const r = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+
+        if (r.ok) {
+          window.location.replace('/');
+        } else {
+          input.classList.add('error');
+          error.classList.add('visible');
+          input.select();
+        }
+      } catch {
+        error.textContent = 'Error de conexión. Inténtalo de nuevo.';
+        error.classList.add('visible');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    });
+
+    input.addEventListener('input', () => {
+      input.classList.remove('error');
+      error.classList.remove('visible');
+    });
+  </script>
+</body>
+</html>

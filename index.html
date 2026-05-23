@@ -508,6 +508,21 @@
       header { padding: 0 20px; }
     }
 
+    .btn-logout {
+      background: none;
+      border: 1px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--gray);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-logout:hover { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+
     @media (max-width: 500px) {
       .brand-tag { display: none; }
       .last-updated { display: none; }
@@ -537,6 +552,7 @@
       </svg>
       Actualizar
     </button>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
   </div>
 </header>
 
@@ -892,8 +908,17 @@
     await loadServer(sid);
   }
 
+  // ── AUTH ────────────────────────────────────────────────────
+  async function doLogout() {
+    await fetch('/api/auth', { method: 'DELETE' });
+    window.location.replace('/login.html');
+  }
+
   // ── INIT ────────────────────────────────────────────────────
-  refreshAll();
+  fetch('/api/auth').then(r => {
+    if (r.status === 401) window.location.replace('/login.html');
+    else refreshAll();
+  }).catch(() => refreshAll()); // si no hay auth configurada, arrancar igualmente
 </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-const https = require('node:https');
+const https  = require('node:https');
+const crypto = require('crypto');
 
 const agent = new https.Agent({ rejectUnauthorized: false });
 
@@ -15,11 +16,25 @@ const SERVERS = {
   },
 };
 
-function fmReq(host, path, method, token, body) {
+// ── Dashboard auth ────────────────────────────────────────────
+function sessionToken() {
+  const secret = process.env.FM_SESSION_SECRET || 'default-secret';
+  const pass   = process.env.FM_DASHBOARD_PASSWORD || '';
+  return crypto.createHmac('sha256', secret).update(pass).digest('hex');
+}
+
+function isAuthenticated(req) {
+  if (!process.env.FM_DASHBOARD_PASSWORD) return true;
+  const m = (req.headers.cookie || '').match(/fm_session=([^;]+)/);
+  return m ? m[1] === sessionToken() : false;
+}
+
+// ── FileMaker Admin API proxy ─────────────────────────────────
+function fmReq(host, path, method, auth, body) {
   return new Promise((resolve, reject) => {
     const bodyStr = body != null ? JSON.stringify(body) : null;
     const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (auth)    headers['Authorization'] = auth;
     if (bodyStr) headers['Content-Length'] = Buffer.byteLength(bodyStr);
 
     const req = https.request(
@@ -39,8 +54,10 @@ function fmReq(host, path, method, token, body) {
   });
 }
 
+// FM Admin API v2 usa Basic Auth en el header para obtener el token
 async function getToken(host, user, pass) {
-  const r = await fmReq(host, '/user/auth', 'POST', null, { username: user, password: pass });
+  const basic = 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
+  const r = await fmReq(host, '/user/auth', 'POST', basic, null);
   if (r.status !== 200) throw new Error(`Auth ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
   const token = r.body?.response?.token;
   if (!token) throw new Error('No token: ' + JSON.stringify(r.body).slice(0, 200));
@@ -48,10 +65,14 @@ async function getToken(host, user, pass) {
 }
 
 async function logout(host, token) {
-  try { await fmReq(host, '/user/auth', 'DELETE', token, null); } catch {}
+  try { await fmReq(host, '/user/auth', 'DELETE', `Bearer ${token}`, null); } catch {}
 }
 
 module.exports = async function handler(req, res) {
+  if (!isAuthenticated(req)) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
   const { server, action } = req.query;
   const srv = SERVERS[server];
   if (!srv?.host || !srv?.user) {
@@ -68,28 +89,28 @@ module.exports = async function handler(req, res) {
   try {
     if (action === 'all') {
       const [statusR, clientsR, dbsR] = await Promise.all([
-        fmReq(srv.host, '/server/status', 'GET', token, null),
-        fmReq(srv.host, '/clients', 'GET', token, null),
-        fmReq(srv.host, '/databases', 'GET', token, null),
+        fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
+        fmReq(srv.host, '/clients',       'GET', `Bearer ${token}`, null),
+        fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
       ]);
       await logout(srv.host, token);
       return res.json({
-        server: srv.host,
-        status: statusR.body?.response ?? null,
-        clients: clientsR.body?.response?.clients ?? [],
-        databases: dbsR.body?.response?.databases ?? [],
+        server:    srv.host,
+        status:    statusR.body?.response ?? null,
+        clients:   clientsR.body?.response?.clients   ?? [],
+        databases: dbsR.body?.response?.databases     ?? [],
       });
     }
 
     const body = req.method === 'POST' ? (req.body || {}) : {};
-
     let result;
+
     if (action === 'close-db') {
-      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', token, { status: 'CLOSED' });
+      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
     } else if (action === 'open-db') {
-      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', token, { status: 'OPEN' });
+      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
     } else if (action === 'kick-client') {
-      result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', token, {
+      result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', `Bearer ${token}`, {
         gracePeriod: 0,
         message: body.message || 'Desconectado por el administrador.',
       });
