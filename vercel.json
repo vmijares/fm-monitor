@@ -1,7 +1,1 @@
-{
-  "functions": {
-    "api/admin.js": {
-      "runtime": "nodejs20.x"
-    }
-  }
-}
+{}
