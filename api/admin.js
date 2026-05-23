@@ -94,11 +94,14 @@ module.exports = async function handler(req, res) {
         fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
       ]);
       await logout(srv.host, token);
+      // Devolvemos el response completo para tolerar distintas versiones de FM Admin API
       return res.json({
-        server:    srv.host,
-        status:    statusR.body?.response ?? null,
-        clients:   clientsR.body?.response?.clients   ?? [],
-        databases: dbsR.body?.response?.databases     ?? [],
+        server:        srv.host,
+        status:        statusR.body?.response ?? null,
+        statusRaw:     statusR.body,          // debug: ver campos reales
+        clients:       clientsR.body?.response?.clients   ?? [],
+        databases:     dbsR.body?.response?.databases     ?? [],
+        clientsOnline: (clientsR.body?.response?.clients ?? []).length,
       });
     }
 

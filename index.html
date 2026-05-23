@@ -729,6 +729,15 @@
     });
   }
 
+  // Extrae campos de /server/status tolerando distintas versiones de FM Admin API
+  function parseStatus(st) {
+    if (!st) return { runState: '', version: '—', startupTime: null };
+    const runState = st.runState || st.state || st.serverState || st.status || '';
+    const version  = st.serverVersion || st.version || st.fmsVersion || st.productVersion || '—';
+    const startupTime = st.startupTime || st.startupTimeStamp || st.startTime || null;
+    return { runState, version, startupTime };
+  }
+
   function renderDatabases(id, dbs) {
     document.getElementById('dbc-' + id).textContent = dbs.length;
     const el = document.getElementById('db-list-' + id);
@@ -758,24 +767,41 @@
     }).join('');
   }
 
+  function fmtSince(str) {
+    if (!str) return '';
+    try {
+      const d = new Date(str);
+      const now = new Date();
+      const diffMin = Math.floor((now - d) / 60000);
+      const timeStr = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      if (diffMin < 1)   return 'Conectado ahora · ' + timeStr;
+      if (diffMin < 60)  return `${diffMin}m conectado · desde ${timeStr}`;
+      const diffH = Math.floor(diffMin / 60);
+      return `${diffH}h ${diffMin % 60}m · desde ${timeStr}`;
+    } catch { return ''; }
+  }
+
   function renderClients(id, clients) {
     document.getElementById('cc-' + id).textContent = clients.length;
     const el = document.getElementById('client-list-' + id);
     if (!clients.length) { el.innerHTML = '<div class="empty-msg">Ningún cliente conectado</div>'; return; }
 
     el.innerHTML = clients.map(c => {
-      const name   = c.userName || c.accountName || '—';
-      const ip     = c.ipAddress || c.remoteAddress || '';
-      const file   = c.fileName  || '';
-      const time   = fmtTime(c.connectTime);
-      const type   = CLIENT_TYPE[c.type] || c.type || '';
-      const detail = [file, ip, time].filter(Boolean).join(' · ');
-      const cId    = parseInt(c.id) || 0;
+      const name     = c.userName || c.accountName || '—';
+      const computer = c.computerName || c.hostName || '';
+      const ip       = c.ipAddress || c.remoteAddress || '';
+      const file     = c.fileName || c.databaseName || '';
+      const type     = CLIENT_TYPE[c.type] || c.type || '';
+      const since    = fmtSince(c.connectTime || c.connectionTime);
+      const cId      = parseInt(c.id) || 0;
+
+      const topLine    = [name, computer].filter(Boolean).join(' · ');
+      const bottomLine = [file ? `📂 ${file}` : '', ip, since].filter(Boolean).join('  ·  ');
 
       return `<div class="client-row">
         <div class="client-info">
-          <div class="client-name">${esc(name)}</div>
-          <div class="client-detail">${esc(detail)}</div>
+          <div class="client-name">${esc(topLine)}</div>
+          <div class="client-detail">${esc(bottomLine)}</div>
         </div>
         ${type ? `<span class="client-type">${esc(type)}</span>` : ''}
         <button class="btn-sm btn-kick" onclick="confirmKick(${id},${cId},'${esc(name)}')">Expulsar</button>
@@ -793,14 +819,13 @@
       document.getElementById('cc-' + id).textContent  = '—';
       return;
     }
-    const runState = data.status?.runState || '';
-    const isRunning = runState === 'RUNNING';
+    const { runState, version, startupTime } = parseStatus(data.status);
+    // Si hay BBDDs o clientes, el servidor está en línea aunque status no devuelva runState
+    const isRunning = runState === 'RUNNING' || runState === 'Normal' ||
+                      (!runState && (data.databases?.length > 0 || data.clients !== undefined));
     setStatus(id, isRunning ? 's-online' : 's-offline',
       isRunning ? 'En línea' : (runState || 'Desconocido'));
-    setMeta(id,
-      data.status?.serverVersion || '—',
-      fmtUptime(data.status?.startupTime),
-      isRunning ? 'Activo' : (runState || '—'));
+    setMeta(id, version, fmtUptime(startupTime), isRunning ? 'Activo' : (runState || '—'));
     renderDatabases(id, data.databases || []);
     renderClients(id, data.clients || []);
   }
