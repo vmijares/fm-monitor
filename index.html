@@ -300,10 +300,22 @@
       border-radius: 8px;
       background: var(--bg);
       gap: 9px;
-      transition: background 0.12s;
+      transition: background 0.12s, opacity 0.12s;
+      border-left: 3px solid transparent;
     }
 
-    .db-row:hover, .client-row:hover { background: var(--gray-lt); }
+    .db-row-open   { border-left-color: var(--green); background: var(--green-bg); }
+    .db-row-closed { border-left-color: var(--gray-lt); opacity: 0.55; }
+    .db-row-pending { border-left-color: var(--yellow); background: var(--yellow-bg); }
+
+    .db-row:hover, .client-row:hover { background: var(--gray-lt); opacity: 1; }
+
+    .db-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .db-dot-open    { background: var(--green); box-shadow: 0 0 0 2px rgba(45,122,74,.2); }
+    .db-dot-closed  { background: var(--gray); }
+    .db-dot-pending { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
 
     .db-name {
       flex: 1;
@@ -840,20 +852,23 @@
 
     el.innerHTML = dbs.map(db => {
       const st = (db.status || '').toUpperCase();
-      const isOpen   = st === 'OPEN'   || st === 'NORMAL';
-      const isClosed = st === 'CLOSED';
+      const isOpen    = st === 'OPEN'   || st === 'NORMAL';
+      const isClosed  = st === 'CLOSED';
       const isPending = st === 'OPENING' || st === 'CLOSING' || st === 'PAUSED';
-      const badgeCls = isOpen ? 'db-open' : isClosed ? 'db-closed' : 'db-pending';
-      const badgeTxt = isOpen ? 'Abierta' : isClosed ? 'Cerrada' : st.charAt(0) + st.slice(1).toLowerCase();
-      const dbId = parseInt(db.id) || 0;
-      const clients = db.clients != null ? `${db.clients} cliente${db.clients !== 1 ? 's' : ''}` : '';
+      const rowCls    = isOpen ? 'db-row db-row-open' : isClosed ? 'db-row db-row-closed' : 'db-row db-row-pending';
+      const dotCls    = isOpen ? 'db-dot db-dot-open' : isClosed ? 'db-dot db-dot-closed' : 'db-dot db-dot-pending';
+      const badgeCls  = isOpen ? 'db-open' : isClosed ? 'db-closed' : 'db-pending';
+      const badgeTxt  = isOpen ? 'Abierta' : isClosed ? 'Cerrada' : st.charAt(0) + st.slice(1).toLowerCase();
+      const dbId      = parseInt(db.id) || 0;
+      const clients   = db.clients != null ? `${db.clients} cliente${db.clients !== 1 ? 's' : ''}` : '';
 
       let btn = '';
       if (isOpen)        btn = `<button class="btn-sm btn-close" onclick="confirmClose(${id},${dbId},'${esc(db.filename)}')">Cerrar</button>`;
       else if (isClosed) btn = `<button class="btn-sm btn-open"  onclick="confirmOpen(${id},${dbId},'${esc(db.filename)}')">Abrir</button>`;
       else               btn = `<button class="btn-sm" disabled>${badgeTxt}</button>`;
 
-      return `<div class="db-row">
+      return `<div class="${rowCls}">
+        <span class="${dotCls}"></span>
         <div class="db-name" title="${esc(db.filename)}">${esc(db.filename)}</div>
         ${clients ? `<span class="db-clients-info">${clients}</span>` : ''}
         <span class="db-badge ${badgeCls}">${badgeTxt}</span>
@@ -1022,20 +1037,27 @@
       okTxt:'Expulsar', okClass:'bc-danger' });
   }
 
+  function fmError(res) {
+    if (res?.error) return res.error;
+    const msg = res?.messages?.[0];
+    if (msg && msg.code !== '0') return `[${msg.code}] ${msg.text || 'Error FM'}`;
+    return null;
+  }
+
   async function doDbAction(sid, dbId, action, name) {
     try {
       const res = await api(sid, action, { id: dbId });
-      if (res?.messages?.[0]?.code !== '0' && res?.error) {
-        alert('Error al ' + (action === 'close-db' ? 'cerrar' : 'abrir') + ' "' + name + '":\n' + (res.error || JSON.stringify(res)));
-      }
+      const err = fmError(res);
+      if (err) alert('Error al ' + (action === 'close-db' ? 'cerrar' : 'abrir') + ' "' + name + '":\n' + err);
     } catch (e) { alert('Error: ' + e.message); }
     await loadServer(sid);
   }
 
-  async function doKick(sid, cId) {
+  async function doKick(sid, cId, name) {
     try {
       const res = await api(sid, 'kick-client', { id: cId });
-      if (res?.error) alert('Error al expulsar cliente:\n' + res.error);
+      const err = fmError(res);
+      if (err) alert('Error al expulsar "' + (name || cId) + '":\n' + err);
     } catch (e) { alert('Error: ' + e.message); }
     await loadServer(sid);
   }

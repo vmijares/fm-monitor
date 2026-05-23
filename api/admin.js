@@ -126,7 +126,10 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const body = req.method === 'POST' ? (req.body || {}) : {};
+    let body = {};
+    if (req.method === 'POST') {
+      try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
+    }
     let result;
 
     if (action === 'close-db') {
@@ -144,6 +147,14 @@ module.exports = async function handler(req, res) {
     }
 
     await logout(srv.host, token);
+    // Normalise FM API errors so the frontend always has an `error` field
+    const fmMsg = result.body?.messages?.[0];
+    if (fmMsg && String(fmMsg.code) !== '0') {
+      return res.status(result.status).json({
+        ...result.body,
+        error: fmMsg.text || `FM error ${fmMsg.code}`,
+      });
+    }
     return res.status(result.status).json(result.body);
   } catch (err) {
     await logout(srv.host, token);
