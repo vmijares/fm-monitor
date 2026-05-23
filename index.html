@@ -491,6 +491,62 @@
     .bc-success { background: var(--green);  color: #fff; }
     .bc-danger  { background: var(--red);    color: #fff; }
 
+    /* ── STATS BAR ──────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-right: 1px solid var(--gray-lt);
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-value {
+      font-family: 'Lora', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--black);
+      line-height: 1;
+    }
+
+    .stat-value.skel-val {
+      width: 48px;
+      height: 28px;
+      background: var(--gray-lt);
+      border-radius: 6px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    @media (max-width: 920px) {
+      .stat-item { padding: 16px 18px; }
+      .stat-value { font-size: 1.5rem; }
+    }
+
+    @media (max-width: 500px) {
+      .stats-bar { flex-direction: column; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--gray-lt); }
+      .stat-item:last-child { border-bottom: none; }
+    }
+
     /* ── FOOTER ──────────────────────────────────── */
     footer {
       text-align: center;
@@ -557,6 +613,22 @@
 </header>
 
 <main>
+  <!-- STATS GLOBALES -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-value skel-val" id="stat-dbs-total"></span>
+      <span class="stat-label">BBDDs activas</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value skel-val" id="stat-clients-1"></span>
+      <span class="stat-label">Usuarios · Servidor Principal</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value skel-val" id="stat-clients-2"></span>
+      <span class="stat-label">Usuarios · Servidor Secundario</span>
+    </div>
+  </div>
+
   <div class="server-grid">
 
     <!-- SERVIDOR 1 -->
@@ -691,6 +763,29 @@
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  // ── GLOBAL STATS ────────────────────────────────────────────
+  const serverStats = { 1: { dbs: 0, clients: 0, loaded: false }, 2: { dbs: 0, clients: 0, loaded: false } };
+
+  function updateGlobalStats() {
+    const totalDbs = serverStats[1].dbs + serverStats[2].dbs;
+    ['stat-dbs-total', 'stat-clients-1', 'stat-clients-2'].forEach(id => {
+      document.getElementById(id).classList.remove('skel-val');
+    });
+    document.getElementById('stat-dbs-total').textContent = totalDbs;
+    document.getElementById('stat-clients-1').textContent = serverStats[1].clients;
+    document.getElementById('stat-clients-2').textContent = serverStats[2].clients;
+  }
+
+  function resetGlobalStats() {
+    ['stat-dbs-total', 'stat-clients-1', 'stat-clients-2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '';
+      el.classList.add('skel-val');
+    });
+    serverStats[1].loaded = false;
+    serverStats[2].loaded = false;
+  }
+
   const CLIENT_TYPE = {
     INTERACTIVE: 'FM Pro', PHP: 'PHP', WEBDIRECT: 'WebDirect',
     XDBC: 'ODBC', DATA_API: 'Data API', OData: 'OData',
@@ -819,17 +914,26 @@
       document.getElementById('client-list-' + id).innerHTML = '';
       document.getElementById('dbc-' + id).textContent = '—';
       document.getElementById('cc-' + id).textContent  = '—';
+      serverStats[id] = { dbs: 0, clients: 0, loaded: true };
+      updateGlobalStats();
       return;
     }
     const { runState, version, startupTime } = parseStatus(data.status);
-    // Si hay BBDDs o clientes, el servidor está en línea aunque status no devuelva runState
     const isRunning = runState === 'RUNNING' || runState === 'Normal' ||
                       (!runState && (data.databases?.length > 0 || data.clients !== undefined));
     setStatus(id, isRunning ? 's-online' : 's-offline',
       isRunning ? 'En línea' : (runState || 'Desconocido'));
     setMeta(id, version, fmtUptime(startupTime), isRunning ? 'Activo' : (runState || '—'));
-    renderDatabases(id, data.databases || []);
-    renderClients(id, data.clients || []);
+    const dbs     = data.databases || [];
+    const clients = data.clients   || [];
+    renderDatabases(id, dbs);
+    renderClients(id, clients);
+    serverStats[id] = {
+      dbs:     dbs.filter(db => { const s = (db.status||'').toUpperCase(); return s === 'OPEN' || s === 'NORMAL'; }).length,
+      clients: clients.length,
+      loaded:  true,
+    };
+    updateGlobalStats();
   }
 
   // ── REFRESH ─────────────────────────────────────────────────
@@ -842,6 +946,7 @@
     if (busy) return;
     busy = true;
     document.getElementById('btn-refresh').classList.add('spinning');
+    resetGlobalStats();
     resetCountdown();
     await Promise.all([loadServer(1), loadServer(2)]);
     const t = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
