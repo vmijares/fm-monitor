@@ -794,9 +794,11 @@
       const type     = CLIENT_TYPE[c.type] || c.type || '';
       const since    = fmtSince(c.connectTime || c.connectionTime);
       const cId      = parseInt(c.id) || 0;
+      const verRaw   = c.appVersion || c.clientVersion || '';
+      const ver      = verRaw ? (() => { const m = String(verRaw).match(/(\d+\.\d+)/); return m ? 'FM ' + m[1] : verRaw; })() : '';
 
       const topLine    = [name, computer].filter(Boolean).join(' · ');
-      const bottomLine = [file ? `📂 ${file}` : '', ip, since].filter(Boolean).join('  ·  ');
+      const bottomLine = [file ? `📂 ${file}` : '', ver, ip, since].filter(Boolean).join('  ·  ');
 
       return `<div class="client-row">
         <div class="client-info">

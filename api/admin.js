@@ -88,20 +88,41 @@ module.exports = async function handler(req, res) {
 
   try {
     if (action === 'all') {
-      const [statusR, clientsR, dbsR] = await Promise.all([
+      const [statusR, dbsR] = await Promise.all([
         fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
-        fmReq(srv.host, '/clients',       'GET', `Bearer ${token}`, null),
         fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
       ]);
+
+      const databases = dbsR.body?.response?.databases ?? [];
+
+      // Query per-database clients to get the fileName association
+      const openDbs = databases.filter(db => {
+        const st = (db.status || '').toUpperCase();
+        return st === 'OPEN' || st === 'NORMAL';
+      });
+
+      let clients = [];
+      if (openDbs.length > 0) {
+        const dbClientResponses = await Promise.all(
+          openDbs.map(db => fmReq(srv.host, `/databases/${db.id}/clients`, 'GET', `Bearer ${token}`, null))
+        );
+        dbClientResponses.forEach((r, i) => {
+          const dbName = openDbs[i].filename || openDbs[i].name || '';
+          (r.body?.response?.clients ?? []).forEach(c => clients.push({ ...c, fileName: dbName }));
+        });
+      } else {
+        // Fallback: no open databases, use global clients endpoint
+        const clientsR = await fmReq(srv.host, '/clients', 'GET', `Bearer ${token}`, null);
+        clients = clientsR.body?.response?.clients ?? [];
+      }
+
       await logout(srv.host, token);
-      // Devolvemos el response completo para tolerar distintas versiones de FM Admin API
       return res.json({
         server:        srv.host,
         status:        statusR.body?.response ?? null,
-        statusRaw:     statusR.body,          // debug: ver campos reales
-        clients:       clientsR.body?.response?.clients   ?? [],
-        databases:     dbsR.body?.response?.databases     ?? [],
-        clientsOnline: (clientsR.body?.response?.clients ?? []).length,
+        clients,
+        databases,
+        clientsOnline: clients.length,
       });
     }
 
