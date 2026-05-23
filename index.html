@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FM Monitor — Simplify Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:      #d4622a;
+      --orange-lt:   #f8ede7;
+      --black:       #1a1a1a;
+      --gray:        #6e6860;
+      --gray-lt:     #e8e3dc;
+      --bg:          #f5f2ee;
+      --white:       #ffffff;
+      --green:       #2d7a4a;
+      --green-bg:    #e6f4ed;
+      --red:         #c0392b;
+      --red-bg:      #fdecea;
+      --yellow:      #a0680c;
+      --yellow-bg:   #fef5e4;
+      --shadow:      0 2px 16px rgba(0,0,0,0.07);
+      --radius:      14px;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--black);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ─────────────────────────────────── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-lt);
+      padding: 0 40px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
+
+    .brand-name {
+      font-family: 'Lora', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--black);
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+
+    .brand-name em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .brand-accent {
+      width: 2px;
+      height: 22px;
+      background: var(--orange);
+      border-radius: 1px;
+    }
+
+    .brand-tag {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--gray);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .last-updated {
+      font-size: 0.76rem;
+      color: var(--gray);
+    }
+
+    .countdown-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .countdown-bar {
+      width: 56px;
+      height: 3px;
+      background: var(--gray-lt);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .countdown-fill {
+      height: 100%;
+      background: var(--orange);
+      border-radius: 2px;
+      transition: width 1s linear;
+    }
+
+    .countdown-label {
+      font-size: 0.72rem;
+      color: var(--gray);
+      width: 24px;
+    }
+
+    .btn-refresh {
+      background: none;
+      border: 1px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--black);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-refresh:hover { background: var(--bg); border-color: var(--orange); color: var(--orange); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-refresh.spinning .ico-refresh { animation: spin 0.7s linear infinite; }
+
+    /* ── MAIN ──────────────────────────────────── */
+    main {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 32px 40px 56px;
+    }
+
+    .server-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    /* ── CARD ───────────────────────────────────── */
+    .server-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--gray-lt);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .card-host {
+      font-size: 0.72rem;
+      color: var(--gray);
+      margin-top: 3px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 300;
+    }
+
+    /* ── STATUS BADGE ───────────────────────────── */
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .s-online  { background: var(--green-bg); color: var(--green); }
+    .s-online  .status-dot { background: var(--green); box-shadow: 0 0 0 2px rgba(45,122,74,.2); }
+    .s-offline { background: var(--red-bg);   color: var(--red);   }
+    .s-offline .status-dot { background: var(--red); }
+    .s-loading { background: var(--gray-lt);  color: var(--gray);  }
+    .s-loading .status-dot { background: var(--gray); animation: pulse 1.2s ease-in-out infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
+
+    /* ── META ROW ───────────────────────────────── */
+    .server-meta {
+      padding: 10px 24px 12px;
+      border-bottom: 1px solid var(--gray-lt);
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: 1px; }
+
+    .meta-label {
+      font-size: 0.64rem;
+      font-weight: 600;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    .meta-value {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--black);
+    }
+
+    .skel {
+      width: 72px;
+      height: 13px;
+      background: var(--gray-lt);
+      border-radius: 4px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    /* ── SECTION ────────────────────────────────── */
+    .card-section {
+      padding: 16px 24px;
+    }
+
+    .card-section + .card-section {
+      border-top: 1px solid var(--gray-lt);
+    }
+
+    .section-title {
+      font-size: 0.67rem;
+      font-weight: 600;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .count-chip {
+      background: var(--gray-lt);
+      color: var(--gray);
+      font-size: 0.63rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+
+    /* ── DB ROWS ────────────────────────────────── */
+    .db-list, .client-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .db-row, .client-row {
+      display: flex;
+      align-items: center;
+      padding: 9px 11px;
+      border-radius: 8px;
+      background: var(--bg);
+      gap: 9px;
+      transition: background 0.12s;
+    }
+
+    .db-row:hover, .client-row:hover { background: var(--gray-lt); }
+
+    .db-name {
+      flex: 1;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--black);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .db-clients-info {
+      font-size: 0.7rem;
+      color: var(--gray);
+      flex-shrink: 0;
+    }
+
+    .db-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .db-open    { background: var(--green-bg);  color: var(--green);  }
+    .db-closed  { background: var(--gray-lt);   color: var(--gray);   }
+    .db-pending { background: var(--yellow-bg); color: var(--yellow); }
+
+    /* ── CLIENT ROWS ─────────────────────────────── */
+    .client-info { flex: 1; overflow: hidden; }
+
+    .client-name {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--black);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .client-detail {
+      font-size: 0.7rem;
+      color: var(--gray);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .client-type {
+      font-size: 0.66rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 8px;
+      background: var(--orange-lt);
+      color: var(--orange);
+      flex-shrink: 0;
+    }
+
+    /* ── BUTTONS ────────────────────────────────── */
+    .btn-sm {
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .btn-close { background: var(--red-bg);    color: var(--red);   }
+    .btn-close:hover:not(:disabled) { background: var(--red);   color: #fff; }
+    .btn-open  { background: var(--green-bg);  color: var(--green); }
+    .btn-open:hover:not(:disabled)  { background: var(--green); color: #fff; }
+    .btn-kick  { background: var(--orange-lt); color: var(--orange); }
+    .btn-kick:hover:not(:disabled)  { background: var(--orange); color: #fff; }
+    .btn-sm:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── STATES ─────────────────────────────────── */
+    .empty-msg {
+      text-align: center;
+      padding: 18px;
+      color: var(--gray);
+      font-size: 0.78rem;
+    }
+
+    .error-msg {
+      background: var(--red-bg);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--red);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .skel-row {
+      height: 40px;
+      background: var(--gray-lt);
+      border-radius: 8px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    /* ── MODAL ──────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,26,26,.48);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 30px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,.16);
+    }
+
+    .modal-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .mi-warn    { background: var(--orange-lt); }
+    .mi-success { background: var(--green-bg);  }
+    .mi-danger  { background: var(--red-bg);    }
+
+    .modal-title {
+      font-family: 'Lora', serif;
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 0.82rem;
+      color: var(--gray);
+      margin-bottom: 22px;
+      line-height: 1.55;
+    }
+
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--gray);
+      transition: background 0.15s;
+    }
+
+    .btn-cancel:hover { background: var(--bg); }
+
+    .btn-confirm {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+
+    .btn-confirm:hover { filter: brightness(0.88); }
+    .bc-warn    { background: var(--orange); color: #fff; }
+    .bc-success { background: var(--green);  color: #fff; }
+    .bc-danger  { background: var(--red);    color: #fff; }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.7rem;
+      color: var(--gray);
+    }
+
+    footer span { font-family: 'Lora', serif; font-style: italic; color: var(--orange); }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 920px) {
+      main { padding: 20px; }
+      .server-grid { grid-template-columns: 1fr; }
+      header { padding: 0 20px; }
+    }
+
+    @media (max-width: 500px) {
+      .brand-tag { display: none; }
+      .last-updated { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <a class="brand-mark" href="https://simplifystudio.es" target="_blank" rel="noopener">
+      <span class="brand-name">Simplify&thinsp;<em>Studio</em></span>
+    </a>
+    <div class="brand-accent"></div>
+    <span class="brand-tag">FM&nbsp;Monitor</span>
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="last-updated">Cargando&hellip;</span>
+    <div class="countdown-wrap" title="Actualización automática en...">
+      <div class="countdown-bar"><div class="countdown-fill" id="cd-fill" style="width:100%"></div></div>
+      <span class="countdown-label" id="cd-label">30s</span>
+    </div>
+    <button class="btn-refresh" id="btn-refresh" onclick="refreshAll()">
+      <svg class="ico-refresh" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="server-grid">
+
+    <!-- SERVIDOR 1 -->
+    <div class="server-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Servidor Principal</div>
+          <div class="card-host">server.simplifystudio.es</div>
+        </div>
+        <div class="status-badge s-loading" id="status-1">
+          <div class="status-dot"></div><span>Conectando</span>
+        </div>
+      </div>
+      <div class="server-meta" id="meta-1">
+        <div class="meta-item">
+          <span class="meta-label">Versión</span>
+          <div class="meta-value skel" id="version-1"></div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Uptime</span>
+          <div class="meta-value skel" id="uptime-1"></div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Estado</span>
+          <div class="meta-value skel" id="runstate-1"></div>
+        </div>
+      </div>
+      <div class="card-section">
+        <div class="section-title">
+          Bases de datos <span class="count-chip" id="dbc-1">—</span>
+        </div>
+        <div class="db-list" id="db-list-1">
+          <div class="skel-row"></div><div class="skel-row"></div>
+        </div>
+      </div>
+      <div class="card-section">
+        <div class="section-title">
+          Clientes conectados <span class="count-chip" id="cc-1">—</span>
+        </div>
+        <div class="client-list" id="client-list-1">
+          <div class="skel-row"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVIDOR 2 -->
+    <div class="server-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Servidor Secundario</div>
+          <div class="card-host">newserver.simplifystudio.es</div>
+        </div>
+        <div class="status-badge s-loading" id="status-2">
+          <div class="status-dot"></div><span>Conectando</span>
+        </div>
+      </div>
+      <div class="server-meta" id="meta-2">
+        <div class="meta-item">
+          <span class="meta-label">Versión</span>
+          <div class="meta-value skel" id="version-2"></div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Uptime</span>
+          <div class="meta-value skel" id="uptime-2"></div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Estado</span>
+          <div class="meta-value skel" id="runstate-2"></div>
+        </div>
+      </div>
+      <div class="card-section">
+        <div class="section-title">
+          Bases de datos <span class="count-chip" id="dbc-2">—</span>
+        </div>
+        <div class="db-list" id="db-list-2">
+          <div class="skel-row"></div><div class="skel-row"></div>
+        </div>
+      </div>
+      <div class="card-section">
+        <div class="section-title">
+          Clientes conectados <span class="count-chip" id="cc-2">—</span>
+        </div>
+        <div class="client-list" id="client-list-2">
+          <div class="skel-row"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <span>Simplify</span> Studio &middot; FM Monitor &middot; <span id="yr"></span>
+</footer>
+
+<!-- Modal de confirmación -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon" id="modal-icon"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-confirm" id="modal-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  const INTERVAL = 30;
+  let cdVal = INTERVAL;
+  let cdTimer = null;
+  let autoTimer = null;
+  let busy = false;
+
+  // ── API ─────────────────────────────────────────────────────
+  async function api(server, action, body) {
+    const opts = {};
+    if (body) {
+      opts.method = 'POST';
+      opts.body = JSON.stringify(body);
+      opts.headers = { 'Content-Type': 'application/json' };
+    }
+    const r = await fetch(`/api/admin?server=${server}&action=${action}`, opts);
+    return r.json();
+  }
+
+  // ── HELPERS ─────────────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  const CLIENT_TYPE = {
+    INTERACTIVE: 'FM Pro', PHP: 'PHP', WEBDIRECT: 'WebDirect',
+    XDBC: 'ODBC', DATA_API: 'Data API', OData: 'OData',
+  };
+
+  function fmtUptime(startupTime) {
+    if (!startupTime) return '—';
+    try {
+      const sec = Math.floor((Date.now() - new Date(startupTime).getTime()) / 1000);
+      if (sec < 0) return '—';
+      const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
+      if (d > 0) return d + 'd ' + h + 'h';
+      if (h > 0) return h + 'h ' + m + 'm';
+      return m + 'm';
+    } catch { return '—'; }
+  }
+
+  function fmtTime(str) {
+    if (!str) return '';
+    try { return new Date(str).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+    catch { return ''; }
+  }
+
+  // ── RENDER ──────────────────────────────────────────────────
+  function setStatus(id, cls, text) {
+    const el = document.getElementById('status-' + id);
+    el.className = 'status-badge ' + cls;
+    el.innerHTML = `<div class="status-dot"></div><span>${esc(text)}</span>`;
+  }
+
+  function setMeta(id, version, uptime, runState) {
+    ['version','uptime','runstate'].forEach(k => {
+      const el = document.getElementById(k + '-' + id);
+      el.className = 'meta-value';
+      el.textContent = k === 'version' ? version : k === 'uptime' ? uptime : runState;
+    });
+  }
+
+  function renderDatabases(id, dbs) {
+    document.getElementById('dbc-' + id).textContent = dbs.length;
+    const el = document.getElementById('db-list-' + id);
+    if (!dbs.length) { el.innerHTML = '<div class="empty-msg">Sin bases de datos</div>'; return; }
+
+    el.innerHTML = dbs.map(db => {
+      const st = (db.status || '').toUpperCase();
+      const isOpen   = st === 'OPEN'   || st === 'NORMAL';
+      const isClosed = st === 'CLOSED';
+      const isPending = st === 'OPENING' || st === 'CLOSING' || st === 'PAUSED';
+      const badgeCls = isOpen ? 'db-open' : isClosed ? 'db-closed' : 'db-pending';
+      const badgeTxt = isOpen ? 'Abierta' : isClosed ? 'Cerrada' : st.charAt(0) + st.slice(1).toLowerCase();
+      const dbId = parseInt(db.id) || 0;
+      const clients = db.clients != null ? `${db.clients} cliente${db.clients !== 1 ? 's' : ''}` : '';
+
+      let btn = '';
+      if (isOpen)        btn = `<button class="btn-sm btn-close" onclick="confirmClose(${id},${dbId},'${esc(db.filename)}')">Cerrar</button>`;
+      else if (isClosed) btn = `<button class="btn-sm btn-open"  onclick="confirmOpen(${id},${dbId},'${esc(db.filename)}')">Abrir</button>`;
+      else               btn = `<button class="btn-sm" disabled>${badgeTxt}</button>`;
+
+      return `<div class="db-row">
+        <div class="db-name" title="${esc(db.filename)}">${esc(db.filename)}</div>
+        ${clients ? `<span class="db-clients-info">${clients}</span>` : ''}
+        <span class="db-badge ${badgeCls}">${badgeTxt}</span>
+        ${btn}
+      </div>`;
+    }).join('');
+  }
+
+  function renderClients(id, clients) {
+    document.getElementById('cc-' + id).textContent = clients.length;
+    const el = document.getElementById('client-list-' + id);
+    if (!clients.length) { el.innerHTML = '<div class="empty-msg">Ningún cliente conectado</div>'; return; }
+
+    el.innerHTML = clients.map(c => {
+      const name   = c.userName || c.accountName || '—';
+      const ip     = c.ipAddress || c.remoteAddress || '';
+      const file   = c.fileName  || '';
+      const time   = fmtTime(c.connectTime);
+      const type   = CLIENT_TYPE[c.type] || c.type || '';
+      const detail = [file, ip, time].filter(Boolean).join(' · ');
+      const cId    = parseInt(c.id) || 0;
+
+      return `<div class="client-row">
+        <div class="client-info">
+          <div class="client-name">${esc(name)}</div>
+          <div class="client-detail">${esc(detail)}</div>
+        </div>
+        ${type ? `<span class="client-type">${esc(type)}</span>` : ''}
+        <button class="btn-sm btn-kick" onclick="confirmKick(${id},${cId},'${esc(name)}')">Expulsar</button>
+      </div>`;
+    }).join('');
+  }
+
+  function renderServer(id, data) {
+    if (data.error) {
+      setStatus(id, 's-offline', 'Sin conexión');
+      setMeta(id, '—', '—', '—');
+      document.getElementById('db-list-' + id).innerHTML = `<div class="error-msg">⚠ ${esc(data.error)}</div>`;
+      document.getElementById('client-list-' + id).innerHTML = '';
+      document.getElementById('dbc-' + id).textContent = '—';
+      document.getElementById('cc-' + id).textContent  = '—';
+      return;
+    }
+    const runState = data.status?.runState || '';
+    const isRunning = runState === 'RUNNING';
+    setStatus(id, isRunning ? 's-online' : 's-offline',
+      isRunning ? 'En línea' : (runState || 'Desconocido'));
+    setMeta(id,
+      data.status?.serverVersion || '—',
+      fmtUptime(data.status?.startupTime),
+      isRunning ? 'Activo' : (runState || '—'));
+    renderDatabases(id, data.databases || []);
+    renderClients(id, data.clients || []);
+  }
+
+  // ── REFRESH ─────────────────────────────────────────────────
+  async function loadServer(id) {
+    try { renderServer(id, await api(id, 'all')); }
+    catch (e) { renderServer(id, { error: e.message }); }
+  }
+
+  async function refreshAll() {
+    if (busy) return;
+    busy = true;
+    document.getElementById('btn-refresh').classList.add('spinning');
+    resetCountdown();
+    await Promise.all([loadServer(1), loadServer(2)]);
+    const t = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('last-updated').textContent = 'Actualizado: ' + t;
+    document.getElementById('btn-refresh').classList.remove('spinning');
+    busy = false;
+  }
+
+  function resetCountdown() {
+    clearInterval(cdTimer);
+    clearTimeout(autoTimer);
+    cdVal = INTERVAL;
+    tickCountdown();
+    cdTimer  = setInterval(() => { cdVal--; tickCountdown(); if (cdVal <= 0) clearInterval(cdTimer); }, 1000);
+    autoTimer = setTimeout(refreshAll, INTERVAL * 1000);
+  }
+
+  function tickCountdown() {
+    document.getElementById('cd-fill').style.width  = (cdVal / INTERVAL * 100) + '%';
+    document.getElementById('cd-label').textContent = cdVal + 's';
+  }
+
+  // ── MODAL ───────────────────────────────────────────────────
+  let pendingFn = null;
+
+  function showModal({ iconClass, iconSvg, titleTxt, descTxt, okTxt, okClass }) {
+    document.getElementById('modal-icon').className   = 'modal-icon ' + iconClass;
+    document.getElementById('modal-icon').innerHTML   = iconSvg;
+    document.getElementById('modal-title').textContent = titleTxt;
+    document.getElementById('modal-desc').textContent  = descTxt;
+    const ok = document.getElementById('modal-ok');
+    ok.textContent = okTxt;
+    ok.className   = 'btn-confirm ' + okClass;
+    ok.onclick     = () => { closeModal(); pendingFn && pendingFn(); };
+    document.getElementById('modal-overlay').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+    pendingFn = null;
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+
+  const SVG_WARN    = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4622a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  const SVG_OK      = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d7a4a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const SVG_KICK    = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
+
+  // ── ACTIONS ─────────────────────────────────────────────────
+  function confirmClose(sid, dbId, name) {
+    pendingFn = () => doDbAction(sid, dbId, 'close-db', name);
+    showModal({ iconClass:'mi-warn', iconSvg:SVG_WARN,
+      titleTxt:'Cerrar base de datos',
+      descTxt:`¿Cerrar "${name}"? Se desconectarán todos los clientes que la tengan abierta.`,
+      okTxt:'Cerrar', okClass:'bc-warn' });
+  }
+
+  function confirmOpen(sid, dbId, name) {
+    pendingFn = () => doDbAction(sid, dbId, 'open-db', name);
+    showModal({ iconClass:'mi-success', iconSvg:SVG_OK,
+      titleTxt:'Abrir base de datos',
+      descTxt:`¿Abrir "${name}"?`,
+      okTxt:'Abrir', okClass:'bc-success' });
+  }
+
+  function confirmKick(sid, cId, name) {
+    pendingFn = () => doKick(sid, cId, name);
+    showModal({ iconClass:'mi-danger', iconSvg:SVG_KICK,
+      titleTxt:'Expulsar cliente',
+      descTxt:`¿Desconectar a "${name}"? Se cerrará su sesión de inmediato.`,
+      okTxt:'Expulsar', okClass:'bc-danger' });
+  }
+
+  async function doDbAction(sid, dbId, action, name) {
+    try {
+      const res = await api(sid, action, { id: dbId });
+      if (res?.messages?.[0]?.code !== '0' && res?.error) {
+        alert('Error al ' + (action === 'close-db' ? 'cerrar' : 'abrir') + ' "' + name + '":\n' + (res.error || JSON.stringify(res)));
+      }
+    } catch (e) { alert('Error: ' + e.message); }
+    await loadServer(sid);
+  }
+
+  async function doKick(sid, cId) {
+    try {
+      const res = await api(sid, 'kick-client', { id: cId });
+      if (res?.error) alert('Error al expulsar cliente:\n' + res.error);
+    } catch (e) { alert('Error: ' + e.message); }
+    await loadServer(sid);
+  }
+
+  // ── INIT ────────────────────────────────────────────────────
+  refreshAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fm-monitor",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", ".", "-l", "3400", "--no-clipboard"],
+      "port": 3400
+    }
+  ]
+}
