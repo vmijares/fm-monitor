@@ -896,11 +896,18 @@
     const el = document.getElementById('client-list-' + id);
     if (!clients.length) { el.innerHTML = '<div class="empty-msg">Ningún cliente conectado</div>'; return; }
 
+    // Debug temporal: ver campos exactos del primer cliente en consola del navegador
+    if (clients.length > 0) console.log('[FM Debug] Client (srv ' + id + '):', JSON.stringify(clients[0]));
+
     el.innerHTML = clients.map(c => {
       const name     = c.userName || c.accountName || '—';
       const computer = c.computerName || c.hostName || '';
       const ip       = c.ipAddress || c.remoteAddress || '';
-      const file     = c.fileName || c.databaseName || '';
+      // FM Admin API v2: databases en openFiles[], con fallback a campos planos
+      const openFiles = Array.isArray(c.openFiles) ? c.openFiles : (Array.isArray(c.databases) ? c.databases : []);
+      const file = openFiles.length > 0
+        ? openFiles.map(f => f.filename || f.name || f.databaseName || f.fileName || '').filter(Boolean).join(', ')
+        : (c.fileName || c.databaseName || c.filename || '');
       const type     = CLIENT_TYPE[c.type] || c.type || '';
       const since    = fmtSince(c.connectTime || c.connectionTime);
       const cId      = parseInt(c.id) || 0;

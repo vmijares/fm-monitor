@@ -121,10 +121,14 @@ module.exports = async function handler(req, res) {
         return res.status(503).json({ error: 'Sesión expirada, recargando...' });
       }
 
+      const clientsList = clientsR.body?.response?.clients ?? [];
+      // Debug: log first client fields so we can verify field names (safe – private admin API)
+      if (clientsList.length > 0) console.log('[FM Debug] client[0] keys:', Object.keys(clientsList[0]), JSON.stringify(clientsList[0]).slice(0, 400));
+
       return res.json({
         server:    srv.host,
         status:    statusR.body?.response ?? null,
-        clients:   clientsR.body?.response?.clients   ?? [],
+        clients:   clientsList,
         databases: dbsR.body?.response?.databases     ?? [],
       });
     }
