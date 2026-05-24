@@ -765,6 +765,15 @@
 <!-- Toast de notificaciones -->
 <div id="toast" class="toast"></div>
 
+<!-- Panel de debug -->
+<div id="dbg-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-family:monospace;font-size:12px;z-index:9999;max-height:50vh;overflow:auto;border-top:2px solid #0f0;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#000;position:sticky;top:0;">
+    <strong style="color:#0f0">⚙ FM Debug</strong>
+    <button onclick="document.getElementById('dbg-panel').style.display='none'" style="background:none;border:1px solid #0f0;color:#0f0;cursor:pointer;padding:2px 8px;font-size:11px;">Cerrar</button>
+  </div>
+  <pre id="dbg-out" style="padding:12px;margin:0;white-space:pre-wrap;word-break:break-all;"></pre>
+</div>
+
 <!-- Modal de confirmación -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal-box">
@@ -786,6 +795,15 @@
   let cdTimer = null;
   let autoTimer = null;
   let busy = false;
+
+  // ── DEBUG PANEL ─────────────────────────────────────────────
+  function dbg(label, data) {
+    const panel = document.getElementById('dbg-panel');
+    const out   = document.getElementById('dbg-out');
+    panel.style.display = 'block';
+    out.textContent = '[' + new Date().toLocaleTimeString('es-ES') + '] ' + label + '\n\n'
+      + JSON.stringify(data, null, 2);
+  }
 
   // ── TOAST ───────────────────────────────────────────────────
   let _toastTimer = null;
@@ -1096,35 +1114,38 @@
   }
 
   async function doDbAction(sid, dbId, action, name) {
-    const verb = action === 'close-db' ? 'Cerrando' : 'Abriendo';
-    const verbPast = action === 'close-db' ? 'Cerrada' : 'Abierta';
+    const verb    = action === 'close-db' ? 'Cerrando' : 'Abriendo';
+    const verbPast = action === 'close-db' ? 'Cerrada'  : 'Abierta';
     showToast(verb + ' "' + name + '"…', 'info', 8000);
+    let res;
     try {
-      const res = await api(sid, action, { id: dbId });
-      console.log('[FM doDbAction]', action, 'srv='+sid, 'dbId='+dbId, 'http='+res._http, JSON.stringify(res).slice(0,300));
+      res = await api(sid, action, { id: dbId });
+      dbg(action + ' · srv=' + sid + ' · dbId=' + dbId + ' · HTTP=' + res._http, res);
       const err = fmError(res);
-      if (err) { showToast('Error al ' + (action === 'close-db' ? 'cerrar' : 'abrir') + ' "' + name + '":\n' + err, 'error', 6000); }
-      else      { showToast(verbPast + ': ' + name, 'success', 3500); }
+      if (err) showToast('Error: ' + err, 'error', 10000);
+      else     showToast(verbPast + ': ' + name, 'success', 4000);
     } catch (e) {
-      console.error('[FM doDbAction] catch:', e);
-      showToast('Error: ' + e.message, 'error', 6000);
+      dbg(action + ' · EXCEPCIÓN', { message: e.message, stack: e.stack });
+      showToast('Excepción: ' + e.message, 'error', 10000);
+      return;
     }
-    // FM tarda 1-2s en procesar el cambio antes de que el reload lo refleje
     await new Promise(r => setTimeout(r, 2000));
     await loadServer(sid);
   }
 
   async function doKick(sid, cId, name) {
     showToast('Expulsando a "' + name + '"…', 'info', 8000);
+    let res;
     try {
-      const res = await api(sid, 'kick-client', { id: cId });
-      console.log('[FM doKick]', 'srv='+sid, 'cId='+cId, 'http='+res._http, JSON.stringify(res).slice(0,300));
+      res = await api(sid, 'kick-client', { id: cId });
+      dbg('kick-client · srv=' + sid + ' · cId=' + cId + ' · HTTP=' + res._http, res);
       const err = fmError(res);
-      if (err) { showToast('Error al expulsar "' + (name || cId) + '":\n' + err, 'error', 6000); }
-      else      { showToast('Cliente desconectado: ' + name, 'success', 3500); }
+      if (err) showToast('Error: ' + err, 'error', 10000);
+      else     showToast('Desconectado: ' + name, 'success', 4000);
     } catch (e) {
-      console.error('[FM doKick] catch:', e);
-      showToast('Error: ' + e.message, 'error', 6000);
+      dbg('kick-client · EXCEPCIÓN', { message: e.message, stack: e.stack });
+      showToast('Excepción: ' + e.message, 'error', 10000);
+      return;
     }
     await new Promise(r => setTimeout(r, 1500));
     await loadServer(sid);
