@@ -940,18 +940,15 @@
     const el = document.getElementById('client-list-' + id);
     if (!clients.length) { el.innerHTML = '<div class="empty-msg">Ningún cliente conectado</div>'; return; }
 
-    // Debug temporal: ver campos exactos del primer cliente en consola del navegador
-    if (clients.length > 0) console.log('[FM Debug] Client (srv ' + id + '):', JSON.stringify(clients[0]));
-
     el.innerHTML = clients.map(c => {
       const name     = c.userName || c.accountName || '—';
       const computer = c.computerName || c.hostName || '';
       const ip       = c.ipAddress || c.remoteAddress || '';
-      // FM Admin API v2: databases en openFiles[], con fallback a campos planos
+      // _dbName: inyectado por admin.js consultando /databases/{id}/clients (más fiable que /clients global)
       const openFiles = Array.isArray(c.openFiles) ? c.openFiles : (Array.isArray(c.databases) ? c.databases : []);
-      const file = openFiles.length > 0
-        ? openFiles.map(f => f.filename || f.name || f.databaseName || f.fileName || '').filter(Boolean).join(', ')
-        : (c.fileName || c.databaseName || c.filename || '');
+      const file = c._dbName
+        || (openFiles.length > 0 ? openFiles.map(f => f.filename || f.name || '').filter(Boolean).join(', ') : '')
+        || c.fileName || c.databaseName || c.filename || '';
       const type     = CLIENT_TYPE[c.type] || c.type || '';
       const since    = fmtSince(c.connectTime || c.connectionTime);
       const cId      = parseInt(c.id) || 0;
@@ -1089,11 +1086,12 @@
   }
 
   function fmError(res) {
-    if (res?.error) return res.error;
-    if (res?._http && res._http >= 400) return `Error HTTP ${res._http}`;
-    const msg = res?.messages?.[0];
-    // String() porque FM puede devolver code como número (0) o string ("0")
-    if (msg && String(msg.code) !== '0') return `[${msg.code}] ${msg.text || 'Error FM'}`;
+    if (!res) return 'Sin respuesta';
+    if (res.error) return res.error;
+    if (res.raw)   return 'FM devolvió respuesta no JSON: ' + String(res.raw).slice(0, 80);
+    if (res._http && res._http >= 400) return 'Error HTTP ' + res._http;
+    const msg = res.messages?.[0];
+    if (msg && String(msg.code) !== '0') return '[' + msg.code + '] ' + (msg.text || 'Error FM');
     return null;
   }
 

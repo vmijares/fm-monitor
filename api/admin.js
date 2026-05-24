@@ -54,25 +54,24 @@ function fmReq(host, path, method, auth, body) {
   });
 }
 
-// ── Token cache (módulo-level: persiste entre requests mientras la función esté caliente)
-// Máx. 1 sesión abierta por servidor en vez de una nueva cada 30s
+// ── Token cache ───────────────────────────────────────────────
 const _tokenCache = {};
 
 async function getToken(host, user, pass) {
   const now = Date.now();
   const cached = _tokenCache[host];
-  if (cached && cached.exp > now) return cached.token; // reutilizar sesión existente
+  if (cached && cached.exp > now) return cached.token;
 
   const basic = 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
   const r = await fmReq(host, '/user/auth', 'POST', basic, null);
   if (r.status !== 200) {
-    delete _tokenCache[host]; // limpiar caché si la sesión está corrupta
+    delete _tokenCache[host];
     throw new Error(`Auth ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
   }
   const token = r.body?.response?.token;
   if (!token) throw new Error('No token: ' + JSON.stringify(r.body).slice(0, 200));
 
-  _tokenCache[host] = { token, exp: now + 9 * 60 * 1000 }; // cachear 9 min
+  _tokenCache[host] = { token, exp: now + 9 * 60 * 1000 };
   return token;
 }
 
@@ -98,7 +97,6 @@ module.exports = async function handler(req, res) {
   try {
     token = await getToken(srv.host, srv.user, srv.pass);
   } catch (err) {
-    // Si falla por sesiones agotadas, limpia la caché e inténtalo solo 1 vez más
     if (err.message.includes('956')) {
       await invalidateToken(srv.host);
       return res.status(503).json({ error: 'Sesiones FM agotadas. Espera 1 minuto y recarga.' });
@@ -107,72 +105,102 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    // ── GET ALL ──────────────────────────────────────────────
     if (action === 'all') {
-      // Sesión reutilizada desde caché — no hacer logout para mantenerla activa
       const [statusR, clientsR, dbsR] = await Promise.all([
         fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
         fmReq(srv.host, '/clients',       'GET', `Bearer ${token}`, null),
         fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
       ]);
 
-      // Si FM devuelve 401 (token expirado), invalidar caché
       if (statusR.status === 401 || clientsR.status === 401 || dbsR.status === 401) {
         await invalidateToken(srv.host);
         return res.status(503).json({ error: 'Sesión expirada, recargando...' });
       }
 
-      const clientsList = clientsR.body?.response?.clients ?? [];
-      // Debug: log first client fields so we can verify field names (safe – private admin API)
-      if (clientsList.length > 0) console.log('[FM Debug] client[0] keys:', Object.keys(clientsList[0]), JSON.stringify(clientsList[0]).slice(0, 400));
+      const databases  = dbsR.body?.response?.databases ?? [];
+      const clientsRaw = clientsR.body?.response?.clients ?? [];
+
+      // ── Construir mapa clientId → filename ──────────────────
+      // El endpoint global /clients NO devuelve a qué BD está conectado cada cliente.
+      // Solución: consultar /databases/{id}/clients por cada BD abierta.
+      const openDbs = databases.filter(db => {
+        const s = (db.status || '').toUpperCase();
+        return s === 'OPEN' || s === 'NORMAL';
+      });
+
+      const clientDbMap = {}; // key: String(clientId), value: filename
+
+      if (openDbs.length > 0) {
+        const dbClientResults = await Promise.allSettled(
+          openDbs.map(db =>
+            fmReq(srv.host, `/databases/${db.id}/clients`, 'GET', `Bearer ${token}`, null)
+          )
+        );
+        dbClientResults.forEach((result, i) => {
+          if (result.status === 'fulfilled' && result.value.status === 200) {
+            const dbClients = result.value.body?.response?.clients ?? [];
+            dbClients.forEach(c => {
+              clientDbMap[String(c.id)] = openDbs[i].filename;
+            });
+          }
+        });
+      }
+
+      // Enriquecer clientes con el nombre de BD
+      const clients = clientsRaw.map(c => ({
+        ...c,
+        _dbName: clientDbMap[String(c.id)] || '',
+      }));
+
+      console.log(`[FM all] srv=${server} dbs=${databases.length} clients=${clients.length} dbMap=${JSON.stringify(clientDbMap)}`);
 
       return res.json({
         server:    srv.host,
         status:    statusR.body?.response ?? null,
-        clients:   clientsList,
-        databases: dbsR.body?.response?.databases     ?? [],
+        clients,
+        databases,
       });
     }
 
+    // ── WRITE ACTIONS ────────────────────────────────────────
     let body = {};
     if (req.method === 'POST') {
       try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
     }
 
-    console.log(`[FM action] server=${server} action=${action} body.id=${body.id} host=${srv.host}`);
+    console.log(`[FM action] server=${server} action=${action} body=${JSON.stringify(body)} host=${srv.host}`);
 
     let result;
     if (action === 'close-db') {
       const dbId = parseInt(body.id);
-      if (!dbId) return res.status(400).json({ error: 'ID de base de datos no válido: ' + body.id });
+      if (!dbId) return res.status(400).json({ error: `ID no válido: ${body.id}` });
       result = await fmReq(srv.host, `/databases/${dbId}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
+
     } else if (action === 'open-db') {
       const dbId = parseInt(body.id);
-      if (!dbId) return res.status(400).json({ error: 'ID de base de datos no válido: ' + body.id });
+      if (!dbId) return res.status(400).json({ error: `ID no válido: ${body.id}` });
       result = await fmReq(srv.host, `/databases/${dbId}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
+
     } else if (action === 'kick-client') {
       const cId = parseInt(body.id);
-      if (!cId) return res.status(400).json({ error: 'ID de cliente no válido: ' + body.id });
+      if (!cId) return res.status(400).json({ error: `ID no válido: ${body.id}` });
       result = await fmReq(srv.host, `/clients/${cId}`, 'DELETE', `Bearer ${token}`, {
         gracePeriod: 0,
-        message: body.message || 'Desconectado por el administrador.',
+        message: 'Desconectado por el administrador.',
       });
+
     } else {
       return res.status(400).json({ error: 'Acción desconocida' });
     }
 
-    console.log(`[FM action result] action=${action} status=${result.status} body=${JSON.stringify(result.body).slice(0, 300)}`);
+    console.log(`[FM result] action=${action} status=${result.status} body=${JSON.stringify(result.body).slice(0, 400)}`);
 
-    // Normalizar errores FM
-    const fmMsg = result.body?.messages?.[0];
-    if (fmMsg && String(fmMsg.code) !== '0') {
-      return res.status(result.status).json({
-        ...result.body,
-        error: fmMsg.text || `FM error ${fmMsg.code}`,
-      });
-    }
+    // Devolver respuesta completa — el frontend decide si hay error
     return res.status(result.status).json(result.body);
 
   } catch (err) {
+    console.error('[FM error]', err.message);
     return res.status(500).json({ error: err.message });
   }
 };
