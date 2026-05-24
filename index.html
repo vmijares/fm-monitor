@@ -595,6 +595,32 @@
       .brand-tag { display: none; }
       .last-updated { display: none; }
     }
+
+    /* ── TOAST ──────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--black);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 12px 22px;
+      border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.22);
+      z-index: 2000;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.22s, transform 0.22s;
+      max-width: 90vw;
+      text-align: center;
+      white-space: pre-line;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.t-success { background: var(--green); }
+    .toast.t-error   { background: var(--red);   }
+    .toast.t-info    { background: var(--orange); }
   </style>
 </head>
 <body>
@@ -736,6 +762,9 @@
   <span>Simplify</span> Studio &middot; FM Monitor &middot; <span id="yr"></span>
 </footer>
 
+<!-- Toast de notificaciones -->
+<div id="toast" class="toast"></div>
+
 <!-- Modal de confirmación -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal-box">
@@ -758,6 +787,16 @@
   let autoTimer = null;
   let busy = false;
 
+  // ── TOAST ───────────────────────────────────────────────────
+  let _toastTimer = null;
+  function showToast(msg, type = 'error', ms = 4500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast t-' + type + ' show';
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { t.className = 'toast'; }, ms);
+  }
+
   // ── API ─────────────────────────────────────────────────────
   async function api(server, action, body) {
     const opts = {};
@@ -767,7 +806,10 @@
       opts.headers = { 'Content-Type': 'application/json' };
     }
     const r = await fetch(`/api/admin?server=${server}&action=${action}`, opts);
-    return r.json();
+    const data = await r.json();
+    // Adjuntar estado HTTP para mejor detección de errores
+    data._http = r.status;
+    return data;
   }
 
   // ── HELPERS ─────────────────────────────────────────────────
@@ -849,6 +891,8 @@
     document.getElementById('dbc-' + id).textContent = dbs.length;
     const el = document.getElementById('db-list-' + id);
     if (!dbs.length) { el.innerHTML = '<div class="empty-msg">Sin bases de datos</div>'; return; }
+    // Debug: ver IDs exactos y campos que devuelve FM
+    if (dbs.length > 0) console.log('[FM Debug] DB (srv ' + id + '):', dbs.map(d => ({ id: d.id, filename: d.filename, status: d.status })));
 
     el.innerHTML = dbs.map(db => {
       const st = (db.status || '').toUpperCase();
@@ -1046,26 +1090,45 @@
 
   function fmError(res) {
     if (res?.error) return res.error;
+    if (res?._http && res._http >= 400) return `Error HTTP ${res._http}`;
     const msg = res?.messages?.[0];
-    if (msg && msg.code !== '0') return `[${msg.code}] ${msg.text || 'Error FM'}`;
+    // String() porque FM puede devolver code como número (0) o string ("0")
+    if (msg && String(msg.code) !== '0') return `[${msg.code}] ${msg.text || 'Error FM'}`;
     return null;
   }
 
   async function doDbAction(sid, dbId, action, name) {
+    const verb = action === 'close-db' ? 'Cerrando' : 'Abriendo';
+    const verbPast = action === 'close-db' ? 'Cerrada' : 'Abierta';
+    showToast(verb + ' "' + name + '"…', 'info', 8000);
     try {
       const res = await api(sid, action, { id: dbId });
+      console.log('[FM doDbAction]', action, 'srv='+sid, 'dbId='+dbId, 'http='+res._http, JSON.stringify(res).slice(0,300));
       const err = fmError(res);
-      if (err) alert('Error al ' + (action === 'close-db' ? 'cerrar' : 'abrir') + ' "' + name + '":\n' + err);
-    } catch (e) { alert('Error: ' + e.message); }
+      if (err) { showToast('Error al ' + (action === 'close-db' ? 'cerrar' : 'abrir') + ' "' + name + '":\n' + err, 'error', 6000); }
+      else      { showToast(verbPast + ': ' + name, 'success', 3500); }
+    } catch (e) {
+      console.error('[FM doDbAction] catch:', e);
+      showToast('Error: ' + e.message, 'error', 6000);
+    }
+    // FM tarda 1-2s en procesar el cambio antes de que el reload lo refleje
+    await new Promise(r => setTimeout(r, 2000));
     await loadServer(sid);
   }
 
   async function doKick(sid, cId, name) {
+    showToast('Expulsando a "' + name + '"…', 'info', 8000);
     try {
       const res = await api(sid, 'kick-client', { id: cId });
+      console.log('[FM doKick]', 'srv='+sid, 'cId='+cId, 'http='+res._http, JSON.stringify(res).slice(0,300));
       const err = fmError(res);
-      if (err) alert('Error al expulsar "' + (name || cId) + '":\n' + err);
-    } catch (e) { alert('Error: ' + e.message); }
+      if (err) { showToast('Error al expulsar "' + (name || cId) + '":\n' + err, 'error', 6000); }
+      else      { showToast('Cliente desconectado: ' + name, 'success', 3500); }
+    } catch (e) {
+      console.error('[FM doKick] catch:', e);
+      showToast('Error: ' + e.message, 'error', 6000);
+    }
+    await new Promise(r => setTimeout(r, 1500));
     await loadServer(sid);
   }
 

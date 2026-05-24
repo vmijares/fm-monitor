@@ -138,19 +138,29 @@ module.exports = async function handler(req, res) {
       try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
     }
 
+    console.log(`[FM action] server=${server} action=${action} body.id=${body.id} host=${srv.host}`);
+
     let result;
     if (action === 'close-db') {
-      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
+      const dbId = parseInt(body.id);
+      if (!dbId) return res.status(400).json({ error: 'ID de base de datos no válido: ' + body.id });
+      result = await fmReq(srv.host, `/databases/${dbId}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
     } else if (action === 'open-db') {
-      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
+      const dbId = parseInt(body.id);
+      if (!dbId) return res.status(400).json({ error: 'ID de base de datos no válido: ' + body.id });
+      result = await fmReq(srv.host, `/databases/${dbId}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
     } else if (action === 'kick-client') {
-      result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', `Bearer ${token}`, {
+      const cId = parseInt(body.id);
+      if (!cId) return res.status(400).json({ error: 'ID de cliente no válido: ' + body.id });
+      result = await fmReq(srv.host, `/clients/${cId}`, 'DELETE', `Bearer ${token}`, {
         gracePeriod: 0,
         message: body.message || 'Desconectado por el administrador.',
       });
     } else {
       return res.status(400).json({ error: 'Acción desconocida' });
     }
+
+    console.log(`[FM action result] action=${action} status=${result.status} body=${JSON.stringify(result.body).slice(0, 300)}`);
 
     // Normalizar errores FM
     const fmMsg = result.body?.messages?.[0];
