@@ -88,76 +88,57 @@ module.exports = async function handler(req, res) {
 
   try {
     if (action === 'all') {
-      const [statusR, dbsR] = await Promise.all([
-        fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
-        fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
-      ]);
-
-      const databases = dbsR.body?.response?.databases ?? [];
-
-      // Query per-database clients to get the fileName association
-      const openDbs = databases.filter(db => {
-        const st = (db.status || '').toUpperCase();
-        return st === 'OPEN' || st === 'NORMAL';
-      });
-
-      let clients = [];
-      if (openDbs.length > 0) {
-        const dbClientResponses = await Promise.all(
-          openDbs.map(db => fmReq(srv.host, `/databases/${db.id}/clients`, 'GET', `Bearer ${token}`, null))
-        );
-        dbClientResponses.forEach((r, i) => {
-          const dbName = openDbs[i].filename || openDbs[i].name || '';
-          (r.body?.response?.clients ?? []).forEach(c => clients.push({ ...c, fileName: dbName }));
+      try {
+        // 3 peticiones paralelas con 1 sola sesión — nunca más de 1 sesión activa por servidor
+        const [statusR, clientsR, dbsR] = await Promise.all([
+          fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
+          fmReq(srv.host, '/clients',       'GET', `Bearer ${token}`, null),
+          fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
+        ]);
+        return res.json({
+          server:    srv.host,
+          status:    statusR.body?.response ?? null,
+          clients:   clientsR.body?.response?.clients   ?? [],
+          databases: dbsR.body?.response?.databases     ?? [],
         });
-      } else {
-        // Fallback: no open databases, use global clients endpoint
-        const clientsR = await fmReq(srv.host, '/clients', 'GET', `Bearer ${token}`, null);
-        clients = clientsR.body?.response?.clients ?? [];
+      } finally {
+        // logout garantizado aunque falle cualquier request
+        await logout(srv.host, token);
       }
-
-      await logout(srv.host, token);
-      return res.json({
-        server:        srv.host,
-        status:        statusR.body?.response ?? null,
-        clients,
-        databases,
-        clientsOnline: clients.length,
-      });
     }
 
     let body = {};
     if (req.method === 'POST') {
       try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
     }
-    let result;
 
-    if (action === 'close-db') {
-      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
-    } else if (action === 'open-db') {
-      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
-    } else if (action === 'kick-client') {
-      result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', `Bearer ${token}`, {
-        gracePeriod: 0,
-        message: body.message || 'Desconectado por el administrador.',
-      });
-    } else {
+    try {
+      let result;
+      if (action === 'close-db') {
+        result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
+      } else if (action === 'open-db') {
+        result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
+      } else if (action === 'kick-client') {
+        result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', `Bearer ${token}`, {
+          gracePeriod: 0,
+          message: body.message || 'Desconectado por el administrador.',
+        });
+      } else {
+        return res.status(400).json({ error: 'Acción desconocida' });
+      }
+      // Normalizar errores FM para que el frontend siempre tenga campo `error`
+      const fmMsg = result.body?.messages?.[0];
+      if (fmMsg && String(fmMsg.code) !== '0') {
+        return res.status(result.status).json({
+          ...result.body,
+          error: fmMsg.text || `FM error ${fmMsg.code}`,
+        });
+      }
+      return res.status(result.status).json(result.body);
+    } finally {
       await logout(srv.host, token);
-      return res.status(400).json({ error: 'Acción desconocida' });
     }
-
-    await logout(srv.host, token);
-    // Normalise FM API errors so the frontend always has an `error` field
-    const fmMsg = result.body?.messages?.[0];
-    if (fmMsg && String(fmMsg.code) !== '0') {
-      return res.status(result.status).json({
-        ...result.body,
-        error: fmMsg.text || `FM error ${fmMsg.code}`,
-      });
-    }
-    return res.status(result.status).json(result.body);
   } catch (err) {
-    await logout(srv.host, token);
     return res.status(500).json({ error: err.message });
   }
 };
