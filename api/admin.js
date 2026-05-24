@@ -54,18 +54,33 @@ function fmReq(host, path, method, auth, body) {
   });
 }
 
-// FM Admin API v2 usa Basic Auth en el header para obtener el token
+// ── Token cache (módulo-level: persiste entre requests mientras la función esté caliente)
+// Máx. 1 sesión abierta por servidor en vez de una nueva cada 30s
+const _tokenCache = {};
+
 async function getToken(host, user, pass) {
+  const now = Date.now();
+  const cached = _tokenCache[host];
+  if (cached && cached.exp > now) return cached.token; // reutilizar sesión existente
+
   const basic = 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
   const r = await fmReq(host, '/user/auth', 'POST', basic, null);
-  if (r.status !== 200) throw new Error(`Auth ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
+  if (r.status !== 200) {
+    delete _tokenCache[host]; // limpiar caché si la sesión está corrupta
+    throw new Error(`Auth ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
+  }
   const token = r.body?.response?.token;
   if (!token) throw new Error('No token: ' + JSON.stringify(r.body).slice(0, 200));
+
+  _tokenCache[host] = { token, exp: now + 9 * 60 * 1000 }; // cachear 9 min
   return token;
 }
 
-async function logout(host, token) {
-  try { await fmReq(host, '/user/auth', 'DELETE', `Bearer ${token}`, null); } catch {}
+async function invalidateToken(host) {
+  const cached = _tokenCache[host];
+  if (!cached) return;
+  delete _tokenCache[host];
+  try { await fmReq(host, '/user/auth', 'DELETE', `Bearer ${cached.token}`, null); } catch {}
 }
 
 module.exports = async function handler(req, res) {
@@ -83,28 +98,35 @@ module.exports = async function handler(req, res) {
   try {
     token = await getToken(srv.host, srv.user, srv.pass);
   } catch (err) {
+    // Si falla por sesiones agotadas, limpia la caché e inténtalo solo 1 vez más
+    if (err.message.includes('956')) {
+      await invalidateToken(srv.host);
+      return res.status(503).json({ error: 'Sesiones FM agotadas. Espera 1 minuto y recarga.' });
+    }
     return res.status(503).json({ error: 'Sin conexión: ' + err.message });
   }
 
   try {
     if (action === 'all') {
-      try {
-        // 3 peticiones paralelas con 1 sola sesión — nunca más de 1 sesión activa por servidor
-        const [statusR, clientsR, dbsR] = await Promise.all([
-          fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
-          fmReq(srv.host, '/clients',       'GET', `Bearer ${token}`, null),
-          fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
-        ]);
-        return res.json({
-          server:    srv.host,
-          status:    statusR.body?.response ?? null,
-          clients:   clientsR.body?.response?.clients   ?? [],
-          databases: dbsR.body?.response?.databases     ?? [],
-        });
-      } finally {
-        // logout garantizado aunque falle cualquier request
-        await logout(srv.host, token);
+      // Sesión reutilizada desde caché — no hacer logout para mantenerla activa
+      const [statusR, clientsR, dbsR] = await Promise.all([
+        fmReq(srv.host, '/server/status', 'GET', `Bearer ${token}`, null),
+        fmReq(srv.host, '/clients',       'GET', `Bearer ${token}`, null),
+        fmReq(srv.host, '/databases',     'GET', `Bearer ${token}`, null),
+      ]);
+
+      // Si FM devuelve 401 (token expirado), invalidar caché
+      if (statusR.status === 401 || clientsR.status === 401 || dbsR.status === 401) {
+        await invalidateToken(srv.host);
+        return res.status(503).json({ error: 'Sesión expirada, recargando...' });
       }
+
+      return res.json({
+        server:    srv.host,
+        status:    statusR.body?.response ?? null,
+        clients:   clientsR.body?.response?.clients   ?? [],
+        databases: dbsR.body?.response?.databases     ?? [],
+      });
     }
 
     let body = {};
@@ -112,32 +134,30 @@ module.exports = async function handler(req, res) {
       try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch {}
     }
 
-    try {
-      let result;
-      if (action === 'close-db') {
-        result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
-      } else if (action === 'open-db') {
-        result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
-      } else if (action === 'kick-client') {
-        result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', `Bearer ${token}`, {
-          gracePeriod: 0,
-          message: body.message || 'Desconectado por el administrador.',
-        });
-      } else {
-        return res.status(400).json({ error: 'Acción desconocida' });
-      }
-      // Normalizar errores FM para que el frontend siempre tenga campo `error`
-      const fmMsg = result.body?.messages?.[0];
-      if (fmMsg && String(fmMsg.code) !== '0') {
-        return res.status(result.status).json({
-          ...result.body,
-          error: fmMsg.text || `FM error ${fmMsg.code}`,
-        });
-      }
-      return res.status(result.status).json(result.body);
-    } finally {
-      await logout(srv.host, token);
+    let result;
+    if (action === 'close-db') {
+      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'CLOSED' });
+    } else if (action === 'open-db') {
+      result = await fmReq(srv.host, `/databases/${parseInt(body.id)}`, 'PATCH', `Bearer ${token}`, { status: 'OPEN' });
+    } else if (action === 'kick-client') {
+      result = await fmReq(srv.host, `/clients/${parseInt(body.id)}`, 'DELETE', `Bearer ${token}`, {
+        gracePeriod: 0,
+        message: body.message || 'Desconectado por el administrador.',
+      });
+    } else {
+      return res.status(400).json({ error: 'Acción desconocida' });
     }
+
+    // Normalizar errores FM
+    const fmMsg = result.body?.messages?.[0];
+    if (fmMsg && String(fmMsg.code) !== '0') {
+      return res.status(result.status).json({
+        ...result.body,
+        error: fmMsg.text || `FM error ${fmMsg.code}`,
+      });
+    }
+    return res.status(result.status).json(result.body);
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
