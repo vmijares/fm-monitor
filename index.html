@@ -20,8 +20,6 @@
       --green-bg:    #e6f4ed;
       --red:         #c0392b;
       --red-bg:      #fdecea;
-      --yellow:      #a0680c;
-      --yellow-bg:   #fef5e4;
       --shadow:      0 2px 16px rgba(0,0,0,0.07);
       --radius:      14px;
     }
@@ -48,17 +46,10 @@
       box-shadow: 0 1px 8px rgba(0,0,0,0.05);
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .brand { display: flex; align-items: center; gap: 14px; }
 
     .brand-mark {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      text-decoration: none;
+      display: flex; align-items: center; gap: 9px; text-decoration: none;
     }
 
     .brand-name {
@@ -69,18 +60,9 @@
       letter-spacing: -0.01em;
       line-height: 1;
     }
+    .brand-name em { font-style: italic; font-weight: 400; }
 
-    .brand-name em {
-      font-style: italic;
-      font-weight: 400;
-    }
-
-    .brand-accent {
-      width: 2px;
-      height: 22px;
-      background: var(--orange);
-      border-radius: 1px;
-    }
+    .brand-accent { width: 2px; height: 22px; background: var(--orange); border-radius: 1px; }
 
     .brand-tag {
       font-family: 'Poppins', sans-serif;
@@ -91,43 +73,24 @@
       text-transform: uppercase;
     }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .header-right { display: flex; align-items: center; gap: 14px; }
 
-    .last-updated {
-      font-size: 0.76rem;
-      color: var(--gray);
-    }
+    .last-updated { font-size: 0.76rem; color: var(--gray); }
 
-    .countdown-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .countdown-wrap { display: flex; align-items: center; gap: 6px; }
 
     .countdown-bar {
-      width: 56px;
-      height: 3px;
+      width: 56px; height: 3px;
       background: var(--gray-lt);
-      border-radius: 2px;
-      overflow: hidden;
+      border-radius: 2px; overflow: hidden;
     }
 
     .countdown-fill {
-      height: 100%;
-      background: var(--orange);
-      border-radius: 2px;
-      transition: width 1s linear;
+      height: 100%; background: var(--orange);
+      border-radius: 2px; transition: width 1s linear;
     }
 
-    .countdown-label {
-      font-size: 0.72rem;
-      color: var(--gray);
-      width: 24px;
-    }
+    .countdown-label { font-size: 0.72rem; color: var(--gray); width: 24px; }
 
     .btn-refresh {
       background: none;
@@ -139,16 +102,27 @@
       font-weight: 500;
       color: var(--black);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: flex; align-items: center; gap: 6px;
       transition: all 0.15s;
     }
-
     .btn-refresh:hover { background: var(--bg); border-color: var(--orange); color: var(--orange); }
 
     @keyframes spin { to { transform: rotate(360deg); } }
     .btn-refresh.spinning .ico-refresh { animation: spin 0.7s linear infinite; }
+
+    .btn-logout {
+      background: none;
+      border: 1px solid var(--gray-lt);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--gray);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-logout:hover { background: var(--red-bg); border-color: var(--red); color: var(--red); }
 
     /* ── MAIN ──────────────────────────────────── */
     main {
@@ -197,23 +171,11 @@
 
     /* ── STATUS BADGE ───────────────────────────── */
     .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.76rem;
-      font-weight: 500;
-      padding: 4px 10px;
-      border-radius: 20px;
-      flex-shrink: 0;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.76rem; font-weight: 500;
+      padding: 4px 10px; border-radius: 20px; flex-shrink: 0;
     }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .s-online  { background: var(--green-bg); color: var(--green); }
     .s-online  .status-dot { background: var(--green); box-shadow: 0 0 0 2px rgba(45,122,74,.2); }
     .s-offline { background: var(--red-bg);   color: var(--red);   }
@@ -227,281 +189,133 @@
     .server-meta {
       padding: 10px 24px 12px;
       border-bottom: 1px solid var(--gray-lt);
-      display: flex;
-      gap: 28px;
-      flex-wrap: wrap;
+      display: flex; gap: 28px; flex-wrap: wrap;
     }
-
     .meta-item { display: flex; flex-direction: column; gap: 1px; }
-
     .meta-label {
-      font-size: 0.64rem;
-      font-weight: 600;
-      color: var(--gray);
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
+      font-size: 0.64rem; font-weight: 600; color: var(--gray);
+      text-transform: uppercase; letter-spacing: 0.09em;
     }
-
-    .meta-value {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--black);
-    }
-
+    .meta-value { font-size: 0.82rem; font-weight: 500; color: var(--black); }
     .skel {
-      width: 72px;
-      height: 13px;
-      background: var(--gray-lt);
-      border-radius: 4px;
+      width: 72px; height: 13px;
+      background: var(--gray-lt); border-radius: 4px;
       animation: pulse 1.2s ease-in-out infinite;
     }
 
     /* ── SECTION ────────────────────────────────── */
-    .card-section {
-      padding: 16px 24px;
-    }
-
-    .card-section + .card-section {
-      border-top: 1px solid var(--gray-lt);
-    }
+    .card-section { padding: 16px 24px; }
 
     .section-title {
-      font-size: 0.67rem;
-      font-weight: 600;
-      color: var(--gray);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      font-size: 0.67rem; font-weight: 600; color: var(--gray);
+      text-transform: uppercase; letter-spacing: 0.1em;
       margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 8px;
     }
 
     .count-chip {
-      background: var(--gray-lt);
-      color: var(--gray);
-      font-size: 0.63rem;
-      font-weight: 600;
-      padding: 1px 7px;
-      border-radius: 10px;
+      background: var(--gray-lt); color: var(--gray);
+      font-size: 0.63rem; font-weight: 600;
+      padding: 1px 7px; border-radius: 10px;
     }
+    .count-chip.cc-badge { background: var(--orange-lt); color: var(--orange); }
 
-    /* ── DB ROWS ────────────────────────────────── */
-    .db-list, .client-list {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+    /* ── UNIFIED DB LIST ────────────────────────── */
+    .db-unified { display: flex; flex-direction: column; gap: 4px; }
+
+    /* Cada base de datos */
+    .db-item { border-radius: 8px; overflow: hidden; }
+    .db-item-active {
+      background: var(--white);
+      border: 1px solid var(--gray-lt);
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
     }
+    .db-item-idle { background: var(--bg); }
 
-    .db-row, .client-row {
-      display: flex;
-      align-items: center;
-      padding: 9px 11px;
-      border-radius: 8px;
-      background: var(--bg);
-      gap: 9px;
-      transition: background 0.12s, opacity 0.12s;
-      border-left: 3px solid transparent;
+    .db-item-hdr {
+      display: flex; align-items: center;
+      padding: 9px 12px; gap: 9px;
+      user-select: none;
     }
+    .db-item-hdr.clickable { cursor: pointer; }
+    .db-item-hdr.clickable:hover { background: rgba(212,98,42,.06); border-radius: 8px; }
+    .db-item-active .db-item-hdr.clickable:hover { border-radius: 0; }
 
-    .db-row-open   { border-left-color: var(--green); background: var(--green-bg); }
-    .db-row-closed { border-left-color: var(--gray-lt); opacity: 0.55; }
-    .db-row-pending { border-left-color: var(--yellow); background: var(--yellow-bg); }
-
-    .db-row:hover, .client-row:hover { background: var(--gray-lt); opacity: 1; }
-
-    .db-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    /* Triángulo / chevron */
+    .db-chevron {
+      width: 14px; height: 14px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
     }
-    .db-dot-open    { background: var(--green); box-shadow: 0 0 0 2px rgba(45,122,74,.2); }
-    .db-dot-closed  { background: var(--gray); }
-    .db-dot-pending { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
+    .db-chevron svg { transition: transform 0.18s; color: var(--orange); }
+    .db-chevron.open svg { transform: rotate(90deg); }
+    .db-chevron-ph { width: 14px; flex-shrink: 0; }
 
     .db-name {
       flex: 1;
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--black);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 0.82rem; font-weight: 500; color: var(--black);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
-    .db-clients-info {
-      font-size: 0.7rem;
-      color: var(--gray);
-      flex-shrink: 0;
+    .db-conn-badge {
+      font-size: 0.68rem; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px;
+      background: var(--orange-lt); color: var(--orange);
+      flex-shrink: 0; margin-left: auto;
     }
 
-    .db-badge {
-      font-size: 0.68rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-      flex-shrink: 0;
+    /* Panel de clientes dentro de la BD */
+    .db-clients-panel {
+      display: none;
+      border-top: 1px solid var(--gray-lt);
+      padding: 4px 8px 8px;
     }
+    .db-clients-panel.open { display: block; }
 
-    .db-open    { background: var(--green-bg);  color: var(--green);  }
-    .db-closed  { background: var(--gray-lt);   color: var(--gray);   }
-    .db-pending { background: var(--yellow-bg); color: var(--yellow); }
+    /* Fila de cliente dentro del panel */
+    .db-client-row {
+      display: flex; align-items: center;
+      padding: 7px 8px; border-radius: 6px; gap: 9px;
+    }
+    .db-client-row:hover { background: var(--gray-lt); }
 
-    /* ── CLIENT ROWS ─────────────────────────────── */
+    /* Labels y divisor de grupos */
+    .db-group-label {
+      font-size: 0.6rem; font-weight: 700; color: var(--gray);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0 4px 6px; margin-top: 2px;
+    }
+    .db-group-divider { height: 1px; background: var(--gray-lt); margin: 8px 0; }
+
+    /* ── CLIENT INFO ─────────────────────────────── */
     .client-info { flex: 1; overflow: hidden; }
-
     .client-name {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--black);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 0.82rem; font-weight: 500; color: var(--black);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-
     .client-detail {
-      font-size: 0.7rem;
-      color: var(--gray);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 0.7rem; color: var(--gray);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-
     .client-type {
-      font-size: 0.66rem;
-      font-weight: 600;
-      padding: 1px 7px;
-      border-radius: 8px;
-      background: var(--orange-lt);
-      color: var(--orange);
-      flex-shrink: 0;
+      font-size: 0.66rem; font-weight: 600;
+      padding: 1px 7px; border-radius: 8px;
+      background: var(--orange-lt); color: var(--orange); flex-shrink: 0;
     }
-
-    /* ── BUTTONS ────────────────────────────────── */
-    .btn-sm {
-      border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-
-    .btn-close { background: var(--red-bg);    color: var(--red);   }
-    .btn-close:hover:not(:disabled) { background: var(--red);   color: #fff; }
-    .btn-open  { background: var(--green-bg);  color: var(--green); }
-    .btn-open:hover:not(:disabled)  { background: var(--green); color: #fff; }
-    .btn-kick  { background: var(--orange-lt); color: var(--orange); }
-    .btn-kick:hover:not(:disabled)  { background: var(--orange); color: #fff; }
-    .btn-sm:disabled { opacity: 0.4; cursor: default; }
 
     /* ── STATES ─────────────────────────────────── */
     .empty-msg {
-      text-align: center;
-      padding: 18px;
-      color: var(--gray);
-      font-size: 0.78rem;
+      text-align: center; padding: 18px;
+      color: var(--gray); font-size: 0.78rem;
     }
-
     .error-msg {
-      background: var(--red-bg);
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: var(--red);
-      font-size: 0.78rem;
-      line-height: 1.4;
+      background: var(--red-bg); border-radius: 8px;
+      padding: 12px 14px; color: var(--red);
+      font-size: 0.78rem; line-height: 1.4;
     }
-
     .skel-row {
-      height: 40px;
-      background: var(--gray-lt);
-      border-radius: 8px;
-      animation: pulse 1.2s ease-in-out infinite;
+      height: 40px; background: var(--gray-lt);
+      border-radius: 8px; animation: pulse 1.2s ease-in-out infinite;
     }
-
-    /* ── MODAL ──────────────────────────────────── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(26,26,26,.48);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.active { display: flex; }
-
-    .modal-box {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 28px 30px;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 10px 40px rgba(0,0,0,.16);
-    }
-
-    .modal-icon {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 14px;
-    }
-
-    .mi-warn    { background: var(--orange-lt); }
-    .mi-success { background: var(--green-bg);  }
-    .mi-danger  { background: var(--red-bg);    }
-
-    .modal-title {
-      font-family: 'Lora', serif;
-      font-size: 1.08rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .modal-desc {
-      font-size: 0.82rem;
-      color: var(--gray);
-      margin-bottom: 22px;
-      line-height: 1.55;
-    }
-
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-
-    .btn-cancel {
-      background: none;
-      border: 1px solid var(--gray-lt);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 500;
-      cursor: pointer;
-      color: var(--gray);
-      transition: background 0.15s;
-    }
-
-    .btn-cancel:hover { background: var(--bg); }
-
-    .btn-confirm {
-      border: none;
-      border-radius: 8px;
-      padding: 8px 18px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: filter 0.15s;
-    }
-
-    .btn-confirm:hover { filter: brightness(0.88); }
-    .bc-warn    { background: var(--orange); color: #fff; }
-    .bc-success { background: var(--green);  color: #fff; }
-    .bc-danger  { background: var(--red);    color: #fff; }
 
     /* ── STATS BAR ──────────────────────────────── */
     .stats-bar {
@@ -512,115 +326,66 @@
       margin-bottom: 24px;
       overflow: hidden;
     }
-
     .stat-item {
-      flex: 1;
-      padding: 20px 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      flex: 1; padding: 20px 28px;
+      display: flex; flex-direction: column; gap: 5px;
       border-right: 1px solid var(--gray-lt);
     }
-
     .stat-item:last-child { border-right: none; }
-
     .stat-value {
       font-family: 'Lora', serif;
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--black);
-      line-height: 1;
+      font-size: 2rem; font-weight: 600; color: var(--black); line-height: 1;
     }
-
     .stat-value.skel-val {
-      width: 48px;
-      height: 28px;
-      background: var(--gray-lt);
-      border-radius: 6px;
+      width: 48px; height: 28px;
+      background: var(--gray-lt); border-radius: 6px;
       animation: pulse 1.2s ease-in-out infinite;
     }
-
     .stat-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      color: var(--gray);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    @media (max-width: 920px) {
-      .stat-item { padding: 16px 18px; }
-      .stat-value { font-size: 1.5rem; }
-    }
-
-    @media (max-width: 500px) {
-      .stats-bar { flex-direction: column; }
-      .stat-item { border-right: none; border-bottom: 1px solid var(--gray-lt); }
-      .stat-item:last-child { border-bottom: none; }
+      font-size: 0.65rem; font-weight: 600; color: var(--gray);
+      text-transform: uppercase; letter-spacing: 0.1em;
     }
 
     /* ── FOOTER ──────────────────────────────────── */
     footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.7rem;
-      color: var(--gray);
+      text-align: center; padding: 20px;
+      font-size: 0.7rem; color: var(--gray);
     }
-
     footer span { font-family: 'Lora', serif; font-style: italic; color: var(--orange); }
+
+    /* ── TOAST ──────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--black); color: #fff;
+      font-size: 0.82rem; font-weight: 500;
+      padding: 12px 22px; border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.22);
+      z-index: 2000; pointer-events: none;
+      opacity: 0; transition: opacity 0.22s, transform 0.22s;
+      max-width: 90vw; text-align: center; white-space: pre-line;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.t-success { background: var(--green); }
+    .toast.t-error   { background: var(--red);   }
+    .toast.t-info    { background: var(--orange); }
 
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 920px) {
       main { padding: 20px; }
       .server-grid { grid-template-columns: 1fr; }
       header { padding: 0 20px; }
+      .stat-item { padding: 16px 18px; }
+      .stat-value { font-size: 1.5rem; }
     }
-
-    .btn-logout {
-      background: none;
-      border: 1px solid var(--gray-lt);
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: var(--gray);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .btn-logout:hover { background: var(--red-bg); border-color: var(--red); color: var(--red); }
-
     @media (max-width: 500px) {
       .brand-tag { display: none; }
       .last-updated { display: none; }
+      .stats-bar { flex-direction: column; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--gray-lt); }
+      .stat-item:last-child { border-bottom: none; }
     }
-
-    /* ── TOAST ──────────────────────────────────── */
-    .toast {
-      position: fixed;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%) translateY(16px);
-      background: var(--black);
-      color: #fff;
-      font-size: 0.82rem;
-      font-weight: 500;
-      padding: 12px 22px;
-      border-radius: 10px;
-      box-shadow: 0 6px 24px rgba(0,0,0,.22);
-      z-index: 2000;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.22s, transform 0.22s;
-      max-width: 90vw;
-      text-align: center;
-      white-space: pre-line;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .toast.t-success { background: var(--green); }
-    .toast.t-error   { background: var(--red);   }
-    .toast.t-info    { background: var(--orange); }
   </style>
 </head>
 <body>
@@ -637,7 +402,7 @@
     <span class="last-updated" id="last-updated">Cargando&hellip;</span>
     <div class="countdown-wrap" title="Actualización automática en...">
       <div class="countdown-bar"><div class="countdown-fill" id="cd-fill" style="width:100%"></div></div>
-      <span class="countdown-label" id="cd-label">30s</span>
+      <span class="countdown-label" id="cd-label">60s</span>
     </div>
     <button class="btn-refresh" id="btn-refresh" onclick="refreshAll()">
       <svg class="ico-refresh" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -696,18 +461,12 @@
       </div>
       <div class="card-section">
         <div class="section-title">
-          Bases de datos <span class="count-chip" id="dbc-1">—</span>
+          Bases de datos
+          <span class="count-chip" id="dbc-1">—</span>
+          <span class="count-chip cc-badge" id="cc-1" style="display:none"></span>
         </div>
-        <div class="db-list" id="db-list-1">
+        <div class="db-unified" id="db-unified-1">
           <div class="skel-row"></div><div class="skel-row"></div>
-        </div>
-      </div>
-      <div class="card-section">
-        <div class="section-title">
-          Clientes conectados <span class="count-chip" id="cc-1">—</span>
-        </div>
-        <div class="client-list" id="client-list-1">
-          <div class="skel-row"></div>
         </div>
       </div>
     </div>
@@ -739,18 +498,12 @@
       </div>
       <div class="card-section">
         <div class="section-title">
-          Bases de datos <span class="count-chip" id="dbc-2">—</span>
+          Bases de datos
+          <span class="count-chip" id="dbc-2">—</span>
+          <span class="count-chip cc-badge" id="cc-2" style="display:none"></span>
         </div>
-        <div class="db-list" id="db-list-2">
+        <div class="db-unified" id="db-unified-2">
           <div class="skel-row"></div><div class="skel-row"></div>
-        </div>
-      </div>
-      <div class="card-section">
-        <div class="section-title">
-          Clientes conectados <span class="count-chip" id="cc-2">—</span>
-        </div>
-        <div class="client-list" id="client-list-2">
-          <div class="skel-row"></div>
         </div>
       </div>
     </div>
@@ -765,47 +518,19 @@
 <!-- Toast de notificaciones -->
 <div id="toast" class="toast"></div>
 
-<!-- Panel de debug -->
-<div id="dbg-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-family:monospace;font-size:12px;z-index:9999;max-height:50vh;overflow:auto;border-top:2px solid #0f0;">
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#000;position:sticky;top:0;">
-    <strong style="color:#0f0">⚙ FM Debug</strong>
-    <button onclick="document.getElementById('dbg-panel').style.display='none'" style="background:none;border:1px solid #0f0;color:#0f0;cursor:pointer;padding:2px 8px;font-size:11px;">Cerrar</button>
-  </div>
-  <pre id="dbg-out" style="padding:12px;margin:0;white-space:pre-wrap;word-break:break-all;"></pre>
-</div>
-
-<!-- Modal de confirmación -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-icon" id="modal-icon"></div>
-    <div class="modal-title" id="modal-title"></div>
-    <div class="modal-desc" id="modal-desc"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn-confirm" id="modal-ok">Confirmar</button>
-    </div>
-  </div>
-</div>
-
 <script>
   document.getElementById('yr').textContent = new Date().getFullYear();
 
   const INTERVAL = 60;
-  let cdVal = INTERVAL;
-  let cdTimer = null;
-  let autoTimer = null;
-  let busy = false;
+  let cdVal = INTERVAL, cdTimer = null, autoTimer = null, busy = false;
 
-  // ── DEBUG PANEL ─────────────────────────────────────────────
-  function dbg(label, data) {
-    const panel = document.getElementById('dbg-panel');
-    const out   = document.getElementById('dbg-out');
-    panel.style.display = 'block';
-    out.textContent = '[' + new Date().toLocaleTimeString('es-ES') + '] ' + label + '\n\n'
-      + JSON.stringify(data, null, 2);
-  }
+  // ── TIPOS DE CLIENTE ─────────────────────────────────────────
+  const CLIENT_TYPE = {
+    INTERACTIVE: 'FM Pro', PHP: 'PHP', WEBDIRECT: 'WebDirect',
+    XDBC: 'ODBC', DATA_API: 'Data API', OData: 'OData',
+  };
 
-  // ── TOAST ───────────────────────────────────────────────────
+  // ── TOAST ────────────────────────────────────────────────────
   let _toastTimer = null;
   function showToast(msg, type = 'error', ms = 4500) {
     const t = document.getElementById('toast');
@@ -815,41 +540,40 @@
     _toastTimer = setTimeout(() => { t.className = 'toast'; }, ms);
   }
 
-  // ── API ─────────────────────────────────────────────────────
+  // ── API ──────────────────────────────────────────────────────
   async function api(server, action, body) {
     const opts = {};
     if (body) {
-      opts.method = 'POST';
-      opts.body = JSON.stringify(body);
+      opts.method  = 'POST';
+      opts.body    = JSON.stringify(body);
       opts.headers = { 'Content-Type': 'application/json' };
     }
-    const r = await fetch(`/api/admin?server=${server}&action=${action}`, opts);
+    const r    = await fetch(`/api/admin?server=${server}&action=${action}`, opts);
     const data = await r.json();
-    // Adjuntar estado HTTP para mejor detección de errores
     data._http = r.status;
     return data;
   }
 
-  // ── HELPERS ─────────────────────────────────────────────────
+  // ── HELPERS ──────────────────────────────────────────────────
   function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
-  // ── GLOBAL STATS ────────────────────────────────────────────
+  // ── GLOBAL STATS ─────────────────────────────────────────────
   const serverStats = { 1: { dbs: 0, clients: 0, loaded: false }, 2: { dbs: 0, clients: 0, loaded: false } };
 
   function updateGlobalStats() {
     const totalDbs = serverStats[1].dbs + serverStats[2].dbs;
-    ['stat-dbs-total', 'stat-clients-1', 'stat-clients-2'].forEach(id => {
+    ['stat-dbs-total','stat-clients-1','stat-clients-2'].forEach(id => {
       document.getElementById(id).classList.remove('skel-val');
     });
-    document.getElementById('stat-dbs-total').textContent = totalDbs;
-    document.getElementById('stat-clients-1').textContent = serverStats[1].clients;
-    document.getElementById('stat-clients-2').textContent = serverStats[2].clients;
+    document.getElementById('stat-dbs-total').textContent  = totalDbs;
+    document.getElementById('stat-clients-1').textContent  = serverStats[1].clients;
+    document.getElementById('stat-clients-2').textContent  = serverStats[2].clients;
   }
 
   function resetGlobalStats() {
-    ['stat-dbs-total', 'stat-clients-1', 'stat-clients-2'].forEach(id => {
+    ['stat-dbs-total','stat-clients-1','stat-clients-2'].forEach(id => {
       const el = document.getElementById(id);
       el.textContent = '';
       el.classList.add('skel-val');
@@ -858,11 +582,7 @@
     serverStats[2].loaded = false;
   }
 
-  const CLIENT_TYPE = {
-    INTERACTIVE: 'FM Pro', PHP: 'PHP', WEBDIRECT: 'WebDirect',
-    XDBC: 'ODBC', DATA_API: 'Data API', OData: 'OData',
-  };
-
+  // ── HELPERS DE TIEMPO ────────────────────────────────────────
   function fmtUptime(startupTime) {
     if (!startupTime) return '—';
     try {
@@ -875,13 +595,20 @@
     } catch { return '—'; }
   }
 
-  function fmtTime(str) {
+  function fmtSince(str) {
     if (!str) return '';
-    try { return new Date(str).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
-    catch { return ''; }
+    try {
+      const d = new Date(str), now = new Date();
+      const diffMin = Math.floor((now - d) / 60000);
+      const timeStr = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      if (diffMin < 1)  return 'Conectado ahora · ' + timeStr;
+      if (diffMin < 60) return diffMin + 'm · desde ' + timeStr;
+      const diffH = Math.floor(diffMin / 60);
+      return diffH + 'h ' + (diffMin % 60) + 'm · desde ' + timeStr;
+    } catch { return ''; }
   }
 
-  // ── RENDER ──────────────────────────────────────────────────
+  // ── RENDER ───────────────────────────────────────────────────
   function setStatus(id, cls, text) {
     const el = document.getElementById('status-' + id);
     el.className = 'status-badge ' + cls;
@@ -896,119 +623,134 @@
     });
   }
 
-  // Extrae campos de /server/status tolerando distintas versiones de FM Admin API
   function parseStatus(st) {
     if (!st) return { runState: '', version: '—', startupTime: null };
-    const runState = st.runState || st.state || st.serverState || st.status || '';
-    const version  = st.serverVersion || st.version || st.fmsVersion || st.productVersion || '—';
+    const runState   = st.runState || st.state || st.serverState || st.status || '';
+    const version    = st.serverVersion || st.version || st.fmsVersion || st.productVersion || '—';
     const startupTime = st.startupTime || st.startupTimeStamp || st.startTime || null;
     return { runState, version, startupTime };
   }
 
-  function renderDatabases(id, dbs) {
-    document.getElementById('dbc-' + id).textContent = dbs.length;
-    const el = document.getElementById('db-list-' + id);
-    if (!dbs.length) { el.innerHTML = '<div class="empty-msg">Sin bases de datos</div>'; return; }
-    // Debug: ver IDs exactos y campos que devuelve FM
-    if (dbs.length > 0) console.log('[FM Debug] DB (srv ' + id + '):', dbs.map(d => ({ id: d.id, filename: d.filename, status: d.status })));
+  // SVG chevron
+  const SVG_CHV = `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
 
-    el.innerHTML = dbs.map(db => {
-      const st = (db.status || '').toUpperCase();
-      const isOpen    = st === 'OPEN'   || st === 'NORMAL';
-      const isClosed  = st === 'CLOSED';
-      const isPending = st === 'OPENING' || st === 'CLOSING' || st === 'PAUSED';
-      const rowCls    = isOpen ? 'db-row db-row-open' : isClosed ? 'db-row db-row-closed' : 'db-row db-row-pending';
-      const dotCls    = isOpen ? 'db-dot db-dot-open' : isClosed ? 'db-dot db-dot-closed' : 'db-dot db-dot-pending';
-      const badgeCls  = isOpen ? 'db-open' : isClosed ? 'db-closed' : 'db-pending';
-      const badgeTxt  = isOpen ? 'Abierta' : isClosed ? 'Cerrada' : st.charAt(0) + st.slice(1).toLowerCase();
-      const dbId      = parseInt(db.id) || 0;
-      const clients   = db.clients != null ? `${db.clients} cliente${db.clients !== 1 ? 's' : ''}` : '';
+  // Render una base de datos como item de acordeón
+  function dbItemHtml(sid, db, dbClients) {
+    const count  = dbClients.length;
+    const itemId = `dbi-${sid}-${db.id}`;
 
-      let btn = '';
-      if (isOpen)        btn = `<button class="btn-sm btn-close" onclick="confirmClose(${id},${dbId},'${esc(db.filename)}')">Cerrar</button>`;
-      else if (isClosed) btn = `<button class="btn-sm btn-open"  onclick="confirmOpen(${id},${dbId},'${esc(db.filename)}')">Abrir</button>`;
-      else               btn = `<button class="btn-sm" disabled>${badgeTxt}</button>`;
-
-      return `<div class="${rowCls}">
-        <span class="${dotCls}"></span>
-        <div class="db-name" title="${esc(db.filename)}">${esc(db.filename)}</div>
-        ${clients ? `<span class="db-clients-info">${clients}</span>` : ''}
-        <span class="db-badge ${badgeCls}">${badgeTxt}</span>
-        ${btn}
-      </div>`;
-    }).join('');
-  }
-
-  function fmtSince(str) {
-    if (!str) return '';
-    try {
-      const d = new Date(str);
-      const now = new Date();
-      const diffMin = Math.floor((now - d) / 60000);
-      const timeStr = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-      if (diffMin < 1)   return 'Conectado ahora · ' + timeStr;
-      if (diffMin < 60)  return `${diffMin}m conectado · desde ${timeStr}`;
-      const diffH = Math.floor(diffMin / 60);
-      return `${diffH}h ${diffMin % 60}m · desde ${timeStr}`;
-    } catch { return ''; }
-  }
-
-  function renderClients(id, clients) {
-    document.getElementById('cc-' + id).textContent = clients.length;
-    const el = document.getElementById('client-list-' + id);
-    if (!clients.length) { el.innerHTML = '<div class="empty-msg">Ningún cliente conectado</div>'; return; }
-
-    el.innerHTML = clients.map(c => {
-      const name     = c.userName || c.accountName || '—';
-      const computer = c.computerName || c.hostName || '';
-      const ip       = c.ipAddress || c.remoteAddress || '';
-      // _dbName: inyectado por admin.js consultando /databases/{id}/clients (más fiable que /clients global)
-      const openFiles = Array.isArray(c.openFiles) ? c.openFiles : (Array.isArray(c.databases) ? c.databases : []);
-      const file = c._dbName
-        || (openFiles.length > 0 ? openFiles.map(f => f.filename || f.name || '').filter(Boolean).join(', ') : '')
-        || c.fileName || c.databaseName || c.filename || '';
-      const type     = CLIENT_TYPE[c.type] || c.type || '';
-      const since    = fmtSince(c.connectTime || c.connectionTime);
-      const cId      = parseInt(c.id) || 0;
-      const verRaw   = c.appVersion || c.clientVersion || '';
-      const ver      = verRaw ? (() => { const m = String(verRaw).match(/(\d+\.\d+)/); return m ? 'FM ' + m[1] : verRaw; })() : '';
-
-      const topLine    = [name, computer].filter(Boolean).join(' · ');
-      const bottomLine = [file ? `📂 ${file}` : '', ver, ip, since].filter(Boolean).join('  ·  ');
-
-      return `<div class="client-row">
+    const clientsHtml = dbClients.map(c => {
+      const name   = c.userName || c.accountName || '—';
+      const comp   = c.computerName || c.hostName || '';
+      const ip     = c.ipAddress || c.remoteAddress || '';
+      const since  = fmtSince(c.connectTime || c.connectionTime);
+      const verRaw = c.appVersion || c.clientVersion || '';
+      const ver    = verRaw ? (() => { const m = String(verRaw).match(/(\d+\.\d+)/); return m ? 'FM ' + m[1] : verRaw; })() : '';
+      const type   = CLIENT_TYPE[c.type] || c.type || '';
+      const top    = [name, comp].filter(Boolean).join(' · ');
+      const bot    = [ver, ip, since].filter(Boolean).join(' · ');
+      return `<div class="db-client-row">
         <div class="client-info">
-          <div class="client-name">${esc(topLine)}</div>
-          <div class="client-detail">${esc(bottomLine)}</div>
+          <div class="client-name">${esc(top)}</div>
+          ${bot ? `<div class="client-detail">${esc(bot)}</div>` : ''}
         </div>
         ${type ? `<span class="client-type">${esc(type)}</span>` : ''}
-        <button class="btn-sm btn-kick" onclick="confirmKick(${id},${cId},'${esc(name)}')">Expulsar</button>
       </div>`;
     }).join('');
+
+    return `<div class="db-item ${count ? 'db-item-active' : 'db-item-idle'}">
+      <div class="db-item-hdr${count ? ' clickable' : ''}" ${count ? `onclick="toggleDb('${itemId}')"` : ''}>
+        ${count
+          ? `<span class="db-chevron" id="chv-${itemId}">${SVG_CHV}</span>`
+          : `<span class="db-chevron-ph"></span>`}
+        <div class="db-name" title="${esc(db.filename)}">${esc(db.filename)}</div>
+        ${count ? `<span class="db-conn-badge">${count} ${count === 1 ? 'usuario' : 'usuarios'}</span>` : ''}
+      </div>
+      ${count ? `<div class="db-clients-panel" id="${itemId}">${clientsHtml}</div>` : ''}
+    </div>`;
+  }
+
+  // Render unificado: bases de datos + clientes en un solo bloque
+  function renderUnified(id, dbs, clients) {
+    // Actualizar chips del título
+    document.getElementById('dbc-' + id).textContent = dbs.length;
+    const cc = document.getElementById('cc-' + id);
+    if (clients.length > 0) {
+      cc.textContent = clients.length + (clients.length === 1 ? ' usuario' : ' usuarios');
+      cc.style.display = '';
+    } else {
+      cc.style.display = 'none';
+    }
+
+    const el = document.getElementById('db-unified-' + id);
+    if (!dbs.length) { el.innerHTML = '<div class="empty-msg">Sin bases de datos</div>'; return; }
+
+    // Mapa dbFilename → [clients]
+    const clientMap = {};
+    clients.forEach(c => {
+      const key = c._dbName || '';
+      if (key) {
+        if (!clientMap[key]) clientMap[key] = [];
+        clientMap[key].push(c);
+      }
+    });
+
+    // Ordenar: por nº usuarios desc, luego alfabético
+    const sorted = [...dbs].sort((a, b) => {
+      const cA = (clientMap[a.filename] || []).length;
+      const cB = (clientMap[b.filename] || []).length;
+      if (cB !== cA) return cB - cA;
+      return (a.filename || '').localeCompare(b.filename || '', 'es', { sensitivity: 'base' });
+    });
+
+    const withUsers    = sorted.filter(db => (clientMap[db.filename] || []).length > 0);
+    const withoutUsers = sorted.filter(db => (clientMap[db.filename] || []).length === 0);
+
+    let html = '';
+    if (withUsers.length) {
+      html += `<div class="db-group-label">Con usuarios conectados</div>`;
+      html += withUsers.map(db => dbItemHtml(id, db, clientMap[db.filename] || [])).join('');
+    }
+    if (withoutUsers.length) {
+      if (withUsers.length) html += `<div class="db-group-divider"></div>`;
+      html += withoutUsers.map(db => dbItemHtml(id, db, [])).join('');
+    }
+    el.innerHTML = html;
+  }
+
+  // Toggle acordeón
+  function toggleDb(itemId) {
+    const panel   = document.getElementById(itemId);
+    const chevron = document.getElementById('chv-' + itemId);
+    if (!panel) return;
+    const willOpen = !panel.classList.contains('open');
+    panel.classList.toggle('open', willOpen);
+    chevron.classList.toggle('open', willOpen);
   }
 
   function renderServer(id, data) {
     if (data.error) {
       setStatus(id, 's-offline', 'Sin conexión');
       setMeta(id, '—', '—', '—');
-      document.getElementById('db-list-' + id).innerHTML = `<div class="error-msg">⚠ ${esc(data.error)}</div>`;
-      document.getElementById('client-list-' + id).innerHTML = '';
+      document.getElementById('db-unified-' + id).innerHTML = `<div class="error-msg">⚠ ${esc(data.error)}</div>`;
       document.getElementById('dbc-' + id).textContent = '—';
-      document.getElementById('cc-' + id).textContent  = '—';
+      document.getElementById('cc-' + id).style.display = 'none';
       serverStats[id] = { dbs: 0, clients: 0, loaded: true };
       updateGlobalStats();
       return;
     }
+
     const { runState, version, startupTime } = parseStatus(data.status);
     const isRunning = runState === 'RUNNING' || runState === 'Normal' ||
                       (!runState && (data.databases?.length > 0 || data.clients !== undefined));
     setStatus(id, isRunning ? 's-online' : 's-offline',
       isRunning ? 'En línea' : (runState || 'Desconocido'));
     setMeta(id, version, fmtUptime(startupTime), isRunning ? 'Activo' : (runState || '—'));
+
     const dbs     = data.databases || [];
     const clients = data.clients   || [];
-    renderDatabases(id, dbs);
-    renderClients(id, clients);
+    renderUnified(id, dbs, clients);
+
     serverStats[id] = {
       dbs:     dbs.filter(db => { const s = (db.status||'').toUpperCase(); return s === 'OPEN' || s === 'NORMAL'; }).length,
       clients: clients.length,
@@ -1017,7 +759,7 @@
     updateGlobalStats();
   }
 
-  // ── REFRESH ─────────────────────────────────────────────────
+  // ── REFRESH ──────────────────────────────────────────────────
   async function loadServer(id) {
     try { renderServer(id, await api(id, 'all')); }
     catch (e) { renderServer(id, { error: e.message }); }
@@ -1041,7 +783,7 @@
     clearTimeout(autoTimer);
     cdVal = INTERVAL;
     tickCountdown();
-    cdTimer  = setInterval(() => { cdVal--; tickCountdown(); if (cdVal <= 0) clearInterval(cdTimer); }, 1000);
+    cdTimer   = setInterval(() => { cdVal--; tickCountdown(); if (cdVal <= 0) clearInterval(cdTimer); }, 1000);
     autoTimer = setTimeout(refreshAll, INTERVAL * 1000);
   }
 
@@ -1050,118 +792,17 @@
     document.getElementById('cd-label').textContent = cdVal + 's';
   }
 
-  // ── MODAL ───────────────────────────────────────────────────
-  let pendingFn = null;
-
-  function showModal({ iconClass, iconSvg, titleTxt, descTxt, okTxt, okClass }) {
-    document.getElementById('modal-icon').className   = 'modal-icon ' + iconClass;
-    document.getElementById('modal-icon').innerHTML   = iconSvg;
-    document.getElementById('modal-title').textContent = titleTxt;
-    document.getElementById('modal-desc').textContent  = descTxt;
-    const ok = document.getElementById('modal-ok');
-    ok.textContent = okTxt;
-    ok.className   = 'btn-confirm ' + okClass;
-    ok.onclick     = () => { closeModal(); pendingFn && pendingFn(); };
-    document.getElementById('modal-overlay').classList.add('active');
-  }
-
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('active');
-    pendingFn = null;
-  }
-
-  document.getElementById('modal-overlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
-  });
-
-  const SVG_WARN    = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4622a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-  const SVG_OK      = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d7a4a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-  const SVG_KICK    = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
-
-  // ── ACTIONS ─────────────────────────────────────────────────
-  function confirmClose(sid, dbId, name) {
-    pendingFn = () => doDbAction(sid, dbId, 'close-db', name);
-    showModal({ iconClass:'mi-warn', iconSvg:SVG_WARN,
-      titleTxt:'Cerrar base de datos',
-      descTxt:`¿Cerrar "${name}"? Se desconectarán todos los clientes que la tengan abierta.`,
-      okTxt:'Cerrar', okClass:'bc-warn' });
-  }
-
-  function confirmOpen(sid, dbId, name) {
-    pendingFn = () => doDbAction(sid, dbId, 'open-db', name);
-    showModal({ iconClass:'mi-success', iconSvg:SVG_OK,
-      titleTxt:'Abrir base de datos',
-      descTxt:`¿Abrir "${name}"?`,
-      okTxt:'Abrir', okClass:'bc-success' });
-  }
-
-  function confirmKick(sid, cId, name) {
-    pendingFn = () => doKick(sid, cId, name);
-    showModal({ iconClass:'mi-danger', iconSvg:SVG_KICK,
-      titleTxt:'Expulsar cliente',
-      descTxt:`¿Desconectar a "${name}"? Se cerrará su sesión de inmediato.`,
-      okTxt:'Expulsar', okClass:'bc-danger' });
-  }
-
-  function fmError(res) {
-    if (!res) return 'Sin respuesta';
-    if (res.error) return res.error;
-    if (res.raw)   return 'FM devolvió respuesta no JSON: ' + String(res.raw).slice(0, 80);
-    if (res._http && res._http >= 400) return 'Error HTTP ' + res._http;
-    const msg = res.messages?.[0];
-    if (msg && String(msg.code) !== '0') return '[' + msg.code + '] ' + (msg.text || 'Error FM');
-    return null;
-  }
-
-  async function doDbAction(sid, dbId, action, name) {
-    const verb    = action === 'close-db' ? 'Cerrando' : 'Abriendo';
-    const verbPast = action === 'close-db' ? 'Cerrada'  : 'Abierta';
-    showToast(verb + ' "' + name + '"…', 'info', 8000);
-    let res;
-    try {
-      res = await api(sid, action, { id: dbId });
-      dbg(action + ' · srv=' + sid + ' · dbId=' + dbId + ' · HTTP=' + res._http, res);
-      const err = fmError(res);
-      if (err) showToast('Error: ' + err, 'error', 10000);
-      else     showToast(verbPast + ': ' + name, 'success', 4000);
-    } catch (e) {
-      dbg(action + ' · EXCEPCIÓN', { message: e.message, stack: e.stack });
-      showToast('Excepción: ' + e.message, 'error', 10000);
-      return;
-    }
-    await new Promise(r => setTimeout(r, 2000));
-    await loadServer(sid);
-  }
-
-  async function doKick(sid, cId, name) {
-    showToast('Expulsando a "' + name + '"…', 'info', 8000);
-    let res;
-    try {
-      res = await api(sid, 'kick-client', { id: cId });
-      dbg('kick-client · srv=' + sid + ' · cId=' + cId + ' · HTTP=' + res._http, res);
-      const err = fmError(res);
-      if (err) showToast('Error: ' + err, 'error', 10000);
-      else     showToast('Desconectado: ' + name, 'success', 4000);
-    } catch (e) {
-      dbg('kick-client · EXCEPCIÓN', { message: e.message, stack: e.stack });
-      showToast('Excepción: ' + e.message, 'error', 10000);
-      return;
-    }
-    await new Promise(r => setTimeout(r, 1500));
-    await loadServer(sid);
-  }
-
-  // ── AUTH ────────────────────────────────────────────────────
+  // ── AUTH ─────────────────────────────────────────────────────
   async function doLogout() {
     await fetch('/api/auth', { method: 'DELETE' });
     window.location.replace('/login.html');
   }
 
-  // ── INIT ────────────────────────────────────────────────────
+  // ── INIT ─────────────────────────────────────────────────────
   fetch('/api/auth').then(r => {
     if (r.status === 401) window.location.replace('/login.html');
     else refreshAll();
-  }).catch(() => refreshAll()); // si no hay auth configurada, arrancar igualmente
+  }).catch(() => refreshAll());
 </script>
 </body>
 </html>
